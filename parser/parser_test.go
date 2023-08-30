@@ -2,7 +2,6 @@ package parser
 
 import (
     "testing"
-    "visml/token"
     "visml/ast"
 )
 
@@ -23,8 +22,8 @@ func TestParseParagraph(t *testing.T) {
     if !ok {
         t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[0].Content[0])
     }
-    if tag.Type != token.CENTER {
-        t.Fatalf("tag should be of type CENTER, got %s", token.TypeToString[tag.Type])
+    if tag.Name != "center" {
+        t.Fatalf("tag name should be 'center', got %s", tag.Name)
     }
 
     text, ok := document.Paragraphs[0].Content[1].(ast.Text)
@@ -71,8 +70,8 @@ func TestParseTagWithContent(t *testing.T) {
     if !ok {
         t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[0].Content[0])
     }
-    if tag.Type != token.BOLD {
-        t.Fatalf("tag should be of type BOLD, got %s", token.TypeToString[tag.Type])
+    if tag.Name != "bold" {
+        t.Fatalf("tag name should be 'bold', got %s", tag.Name)
     }
 
     text, ok := tag.Content[0].(ast.Text)
@@ -103,8 +102,8 @@ func TestTagAndTagWithContent(t *testing.T) {
     if !ok {
         t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[0].Content[0])
     }
-    if tag.Type != token.CENTER {
-        t.Fatalf("tag should be of type CENTER, got %s", token.TypeToString[tag.Type])
+    if tag.Name != "center" {
+        t.Fatalf("tag name should be 'center', got %s", tag.Name)
     }
 
     text, ok := document.Paragraphs[0].Content[1].(ast.Text)
@@ -119,8 +118,8 @@ func TestTagAndTagWithContent(t *testing.T) {
     if !ok {
         t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[0].Content[2])
     }
-    if tag.Type != token.BOLD {
-        t.Fatalf("tag should be of type BOLD, got %s", token.TypeToString[tag.Type])
+    if tag.Name != "bold" {
+        t.Fatalf("tag name should be 'bold', got %s", tag.Name)
     }
 
     text, ok = tag.Content[0].(ast.Text)

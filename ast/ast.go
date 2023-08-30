@@ -1,9 +1,5 @@
 package ast
 
-import (
-    "visml/token"
-)
-
 // Interfaces
 type Node interface {}
 type Inline interface {}
@@ -25,6 +21,6 @@ type Text struct {
 
 type Tag struct {
     Inline
-    Type token.TokenType
+    Name string
     Content []Inline
 }

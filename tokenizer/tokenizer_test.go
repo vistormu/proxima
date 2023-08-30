@@ -6,7 +6,7 @@ import (
 )
 
 
-func test(t *testing.T, input string, tests []struct { expectedType token.TokenType; expectedSubType token.TokenType; expectedContent string }) {
+func test(t *testing.T, input string, tests []struct { expectedType token.TokenType; expectedContent string }) {
     tokenizer := New(input)
 
     for i, test := range tests {
@@ -17,29 +17,22 @@ func test(t *testing.T, input string, tests []struct { expectedType token.TokenT
                 i, token.TypeToString[test.expectedType], token.TypeToString[tok.Type])
         }
 
-        if tok.Subtype != test.expectedSubType {
-            t.Fatalf("tests[%d] - tokensubtype wrong. expected=%s, got=%s",
-                i, token.TypeToString[test.expectedSubType], token.TypeToString[tok.Subtype])
-        }
-
-        if tok.Content != test.expectedContent {
+        if tok.Literal != test.expectedContent {
             t.Fatalf("tests[%d] - content wrong. expected=%s, got=%s",
-                i, test.expectedContent, tok.Content)
+                i, test.expectedContent, tok.Literal)
         }
     }
 }
 
 func TestTag(t *testing.T) {
-    input := `@center This is centered text!`
+    input := `@center`
 
     tests := []struct {
         expectedType token.TokenType
-        expectedSubType token.TokenType
         expectedContent string
     }{
-        {token.TAG, token.CENTER, ""},
-        {token.TEXT, token.TEXT, "This is centered text!"},
-        {token.CHAR, token.EOF, ""},
+        {token.TAG, "center"},
+        {token.EOF, ""},
     }
 
     test(t, input, tests)
@@ -50,14 +43,13 @@ func TestTagWithContent(t *testing.T) {
 
     tests := []struct {
         expectedType token.TokenType
-        expectedSubType token.TokenType
         expectedContent string
     }{
-        {token.TAG, token.BOLD, ""},
-        {token.CHAR, token.LBRACE, ""},
-        {token.TEXT, token.TEXT, "This is bold text!"},
-        {token.CHAR, token.RBRACE, ""},
-        {token.CHAR, token.EOF, ""},
+        {token.TAG, "bold"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "This is bold text!"},
+        {token.RBRACE, "}"},
+        {token.EOF, ""},
     }
 
     test(t, input, tests)
@@ -71,18 +63,19 @@ func TestTagsAndTagsWithContent(t *testing.T) {
 
     tests := []struct {
         expectedType token.TokenType
-        expectedSubType token.TokenType
         expectedContent string
     }{
-        {token.CHAR, token.LINEBREAK, ""},
-        {token.TAG, token.CENTER, ""},
-        {token.CHAR, token.LINEBREAK, ""},
-        {token.TEXT, token.TEXT, "This is centered and "},
-        {token.TAG, token.BOLD, ""},
-        {token.CHAR, token.LBRACE, ""},
-        {token.TEXT, token.TEXT, "bold"},
-        {token.CHAR, token.RBRACE, ""},
-        {token.TEXT, token.TEXT, " text!"},
+        {token.LINEBREAK, "\n"},
+        {token.TAG, "center"},
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is centered and "},
+        {token.TAG, "bold"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "bold"},
+        {token.RBRACE, "}"},
+        {token.TEXT, " text!"},
+        {token.LINEBREAK, "\n"},
+        {token.EOF, ""},
     }
 
     test(t, input, tests)

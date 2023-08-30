@@ -48,10 +48,10 @@ func (p *Parser) nextToken() {
     }
 }
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
-    return p.currentToken.Type == t || p.currentToken.Subtype == t
+    return p.currentToken.Type == t 
 }
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
-    return p.peekToken.Type == t || p.peekToken.Subtype == t
+    return p.peekToken.Type == t
 }
 func (p *Parser) expectPeekTokenToBe(t token.TokenType) bool {
     if p.peekTokenIs(t) {
@@ -102,14 +102,14 @@ func (p *Parser) parseInline() ast.Inline {
         return p.parseTag()
     }
     
-    p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Subtype]))
+    p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
     return nil
 }
 func (p *Parser) parseText() ast.Text {
-    return ast.Text{Content: p.currentToken.Content}
+    return ast.Text{Content: p.currentToken.Literal}
 }
 func (p *Parser) parseTag() *ast.Tag {
-    tag := &ast.Tag{Type: p.currentToken.Subtype}
+    tag := &ast.Tag{Name: p.currentToken.Literal}
 
     if !p.peekTokenIs(token.LBRACE) {
         p.nextToken()
