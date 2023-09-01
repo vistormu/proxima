@@ -53,15 +53,6 @@ func (p *Parser) currentTokenIs(t token.TokenType) bool {
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
     return p.peekToken.Type == t
 }
-func (p *Parser) expectPeekTokenToBe(t token.TokenType) bool {
-    if p.peekTokenIs(t) {
-        p.nextToken()
-        return true
-    } else {
-        p.addError(fmt.Sprintf("expected next token to be %d, got %d", t, p.peekToken.Type))
-        return false
-    }
-}
 
 // ERRORS
 func (p *Parser) addError(message string) {
@@ -84,7 +75,10 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
     paragraph := &ast.Paragraph{}
 
     for !p.paragraphIsTerminated() {
-        paragraph.Content = append(paragraph.Content, p.parseInline())
+        expression := p.parseInline()
+        if expression != nil {
+            paragraph.Content = append(paragraph.Content, expression)
+        }
         p.nextToken()
     }
 
@@ -93,7 +87,7 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
 
 func (p *Parser) parseInline() ast.Inline {
     if p.currentTokenIs(token.LINEBREAK) {
-        p.nextToken()
+        return nil
     }
     if p.currentTokenIs(token.TEXT) {
         return p.parseText()
@@ -111,11 +105,18 @@ func (p *Parser) parseText() *ast.Text {
 func (p *Parser) parseTag() *ast.Tag {
     tag := &ast.Tag{Name: p.currentToken.Literal}
 
-    if !p.expectPeekTokenToBe(token.LBRACE) { return nil }
+    if !p.peekTokenIs(token.LBRACE) {
+        p.addError("Expected '{' after tag name")
+        return tag
+    }
+    p.nextToken()
     p.nextToken()
 
     for !p.currentTokenIs(token.RBRACE) {
-        tag.Content = append(tag.Content, p.parseInline())
+        expression := p.parseInline()
+        if expression != nil {
+            tag.Content = append(tag.Content, expression)
+        }
         p.nextToken()
     }
 

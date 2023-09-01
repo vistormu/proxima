@@ -1,5 +1,7 @@
 # proxima
 
+[](assets/proxima.png)
+
 Proxima is a markup language that offers the simplicity of markdown with the power of LaTeX.
 
 Its syntax is very simple:
@@ -77,6 +79,7 @@ This is a bold paragraph
 ### Links
 ```
 @url{https://github.com/vistormu}
+@email{vistormu@gmail.com}
 ```
 
 ### Images

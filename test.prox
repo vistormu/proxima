@@ -1,3 +1,25 @@
-This is a test
+@center{
+    This is centered text!
+}
 
-@h1{This is a test}
+@justify{
+    This is justified text!
+}
+
+@right{
+    To the right
+}
+
+@left{
+    To the left
+}
+
+@h1{Section}
+
+@h2{Subsection}
+
+@h3{Subsubsection}
+
+@bold{bold}, @italic{italic}, @strike{st} and @underline{underlined}
+
+@url{https://github.com/vistormu}

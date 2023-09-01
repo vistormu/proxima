@@ -30,17 +30,24 @@ func main() {
     }
 
     out := os.Stdout
-    parser := parser.New(string(content))
-    document := parser.Parse()
+    p := parser.New(string(content))
+    document := p.Parse()
 
-    if len(parser.Errors) != 0 {
-        for _, err := range parser.Errors {
+    if len(p.Errors) != 0 {
+        for _, err := range p.Errors {
             io.WriteString(out, err.String() + "\n")
         }
         return
     }
 
-    evaluated := evaluator.Eval(document)
+    ev := evaluator.New()
+    evaluated := ev.Eval(document)
+    if len(ev.Errors) != 0 {
+        for _, err := range ev.Errors {
+            io.WriteString(out, err.String() + "\n")
+        }
+        return
+    }
 
     file, err := os.Create("index.html")
     if err != nil {
