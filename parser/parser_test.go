@@ -26,7 +26,7 @@ func TestParseParagraph(t *testing.T) {
         t.Fatalf("tag name should be 'center', got %s", tag.Name)
     }
 
-    text, ok := document.Paragraphs[0].Content[1].(ast.Text)
+    text, ok := document.Paragraphs[0].Content[1].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[1])
     }
@@ -46,7 +46,7 @@ func TestParseText(t *testing.T) {
         t.Fatalf("document should have 1 paragraph, got %d", len(document.Paragraphs))
     }
 
-    text, ok := document.Paragraphs[0].Content[0].(ast.Text)
+    text, ok := document.Paragraphs[0].Content[0].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[0])
     }
@@ -74,7 +74,7 @@ func TestParseTagWithContent(t *testing.T) {
         t.Fatalf("tag name should be 'bold', got %s", tag.Name)
     }
 
-    text, ok := tag.Content[0].(ast.Text)
+    text, ok := tag.Content[0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should have text, got %T", tag.Content[0])
     }
@@ -106,7 +106,7 @@ func TestTagAndTagWithContent(t *testing.T) {
         t.Fatalf("tag name should be 'center', got %s", tag.Name)
     }
 
-    text, ok := document.Paragraphs[0].Content[1].(ast.Text)
+    text, ok := document.Paragraphs[0].Content[1].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[1])
     }
@@ -122,7 +122,7 @@ func TestTagAndTagWithContent(t *testing.T) {
         t.Fatalf("tag name should be 'bold', got %s", tag.Name)
     }
 
-    text, ok = tag.Content[0].(ast.Text)
+    text, ok = tag.Content[0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should have text, got %T", tag.Content[0])
     }
@@ -130,7 +130,7 @@ func TestTagAndTagWithContent(t *testing.T) {
         t.Fatalf("text should be 'bold', got %s", text.Content)
     }
 
-    text, ok = document.Paragraphs[0].Content[3].(ast.Text)
+    text, ok = document.Paragraphs[0].Content[3].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[3])
     }
@@ -154,7 +154,7 @@ func TestMultiParagraph(t *testing.T) {
         t.Fatalf("document should have 2 paragraphs, got %d", len(document.Paragraphs))
     }
 
-    text, ok := document.Paragraphs[0].Content[0].(ast.Text)
+    text, ok := document.Paragraphs[0].Content[0].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[0])
     }
@@ -162,7 +162,7 @@ func TestMultiParagraph(t *testing.T) {
         t.Fatalf("text should be 'This is the first paragraph.', got %s", text.Content)
     }
 
-    text, ok = document.Paragraphs[1].Content[0].(ast.Text)
+    text, ok = document.Paragraphs[1].Content[0].(*ast.Text)
     if !ok {
         t.Fatalf("paragraph should have text, got %T", document.Paragraphs[1].Content[0])
     }

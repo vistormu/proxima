@@ -80,8 +80,8 @@ func (p *Parser) paragraphIsTerminated() bool {
 }
 
 // PARSE
-func (p *Parser) parseParagraph() ast.Paragraph {
-    paragraph := ast.Paragraph{}
+func (p *Parser) parseParagraph() *ast.Paragraph {
+    paragraph := &ast.Paragraph{}
 
     for !p.paragraphIsTerminated() {
         paragraph.Content = append(paragraph.Content, p.parseInline())
@@ -105,17 +105,12 @@ func (p *Parser) parseInline() ast.Inline {
     p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
     return nil
 }
-func (p *Parser) parseText() ast.Text {
-    return ast.Text{Content: p.currentToken.Literal}
+func (p *Parser) parseText() *ast.Text {
+    return &ast.Text{Content: p.currentToken.Literal}
 }
 func (p *Parser) parseTag() *ast.Tag {
     tag := &ast.Tag{Name: p.currentToken.Literal}
 
-    if !p.peekTokenIs(token.LBRACE) {
-        p.nextToken()
-        return tag
-    }
-        
     if !p.expectPeekTokenToBe(token.LBRACE) { return nil }
     p.nextToken()
 

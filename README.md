@@ -1,8 +1,23 @@
-# VISML
+# proxima
 
-Vistor's Markup Language (visml) aims to be a markup language between Markdown and LaTeX. It is also very opinionated, leaving only one way of doing things.
+Proxima is a markup language that offers the simplicity of markdown with the power of LaTeX.
 
-Alignment
+Its syntax is very simple:
+
+- A tag wraps the text below until a double line break is encountered.
+```
+@<tag>
+<text>
+```
+
+- A tag can also wrap a selection of text.
+```
+@<tag>{<text>}
+```
+
+## Syntax
+
+### Alignment
 ```
 @center
 This text is centered.
@@ -17,7 +32,7 @@ This text is flushed to the right
 This text is flushed to the left
 ```
 
-Headers
+### Headers
 ```
 @h0
 This is a chapter
@@ -34,7 +49,7 @@ This is a subsubsection
 ...
 ```
 
-Text styles
+### Text styles
 ```
 @bold{This is bold text}
 
@@ -48,7 +63,7 @@ This is a bold paragraph
 @underline{Same}
 ```
 
-Lists
+### Lists
 ```
 @bulletlist
 - This is one item.
@@ -59,17 +74,17 @@ Lists
 - This is the second element
 ```
 
-Links
+### Links
 ```
 @url{https://github.com/vistormu}
 ```
 
-Images
+### Images
 ```
 @image{assets/fig.png}
 ```
 
-Other commands
+### Other commands
 ```
 @center
 This text is centered

@@ -11,7 +11,7 @@ type Paragraph struct {
 }
 
 type Document struct {
-    Paragraphs []Paragraph
+    Paragraphs []*Paragraph
 }
 
 type Text struct {
