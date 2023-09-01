@@ -2,10 +2,10 @@ package parser
 
 import (
     "fmt"
-    "visml/token"
-    "visml/tokenizer"
-    "visml/ast"
-    "visml/error"
+    "proxima/token"
+    "proxima/tokenizer"
+    "proxima/ast"
+    "proxima/error"
 )
 
 type Parser struct {

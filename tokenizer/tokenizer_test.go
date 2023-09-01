@@ -2,7 +2,7 @@ package tokenizer
 
 import (
     "testing"
-    "visml/token"
+    "proxima/token"
 )
 
 

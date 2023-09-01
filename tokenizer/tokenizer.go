@@ -1,7 +1,7 @@
 package tokenizer
 
 import (
-    "visml/token"
+    "proxima/token"
 )
 
 type Tokenizer struct {

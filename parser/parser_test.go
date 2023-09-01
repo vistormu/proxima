@@ -2,7 +2,7 @@ package parser
 
 import (
     "testing"
-    "visml/ast"
+    "proxima/ast"
 )
 
 func TestParseParagraph(t *testing.T) {
