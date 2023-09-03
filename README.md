@@ -6,95 +6,70 @@
     </a>
 </p>
 
-Proxima is a markup language that offers the simplicity of Markdown with the power of LaTeX.
+Proxima is a markup language written in pure Go that offers the simplicity of Markdown with the power of LaTeX. It transpiles into HTML, so it is also suitable for teh browser.
 
 > It is currently under development, so actually it is not even as powerful as Markdown ;).
 
 Its syntax is very simple:
 
-- A tag wraps the text below until a double line break is encountered.
+- A tag wraps the selected text with some functionality:
+```
+@<tag>{<text>}
+```
+
+- A tag can also wrap the text below until a double line break is encountered.
 ```
 @<tag>
 <text>
 ```
 
-- A tag can also wrap a selection of text.
+## Installation
+
+First, [install Go](https://go.dev/dl/) if you already don't have it.
+
+Proxima generates the PDF using `wkhtmltopdf`, so download it [here](https://wkhtmltopdf.org/index.html).
+
+Currently, the only way of installing is through source code.
+- Clone the repository:
+  ```
+  git clone github.com/vistormu/proxima.git
+  ```
+- Build the project with:
+  ```
+  go build build/main.go
+  ```
+
+## Usage
+The following `test.prox` file shows some basic usage.
 ```
-@<tag>{<text>}
-```
-
-## Syntax
-
-### Alignment
-```
-@center
-This text is centered.
-
-@justify
-This text is justified
-
-@right
-This text is flushed to the right
-
-@left
-This text is flushed to the left
-```
-
-### Headers
-```
-@h0
-This is a chapter
+# test.prox
 
 @h1
-This is a section
+This is a section title!
 
-@h2
-This is a subsection
-
-@h3
-This is a subsubsection
-```
-
-### Text styles
-```
-@bold{This is bold text}
-
-@bold
-This is a bold paragraph
-
-@italic{Same with italic text}
-
-@striketrough{Same same}
-
-@underline{Same}
-```
-
-### Lists
-```
-@bulletlist
-- This is one item.
-- This is another item
-
-@enumeration
-- This is the first element
-- This is the second element
-```
-
-### Links
-```
-@url{https://github.com/vistormu}
-@email{vistormu@gmail.com}
-```
-
-### Images
-```
-@image{assets/fig.png}
-```
-
-### Other commands
-```
 @center
-This text is centered
-@break{}
-And this one too but in a new line
+This is centered text!
+
+This is a new paragraph!
+
+@right
+This is a paragraph flushed to the right and with @bold{some bold text}!
 ```
+
+Then, execute the binary code with the file as the first argument:
+```
+/path/to/main <filename>.prox
+```
+
+## Full syntax
+- Alignment: `@center`, `@right`
+- Headings: `@h1`, `@h2`, `@h3`
+- Text styles: `@bold`, `@italic`, `@uline`, `@striket`
+- Links: `@url`
+- TBI: `@ulist`, `@nlist`, `@email`, `@image`
+
+## TODOs
+- Implement more features
+- Have an --html flag to output the index.html instead of the PDF
+- Implement some formatting algorithm
+- Change the default style via CSS
