@@ -1,6 +1,10 @@
 # proxima
 
-![logo](/assets/proxima.png)
+<p align="center">
+    <a href="https://github.com/vistormu/adam_simulator">
+        <img src="/assets/proxima.svg">
+    </a>
+</p>
 
 Proxima is a markup language that offers the simplicity of markdown with the power of LaTeX.
 
@@ -47,8 +51,6 @@ This is a subsection
 
 @h3
 This is a subsubsection
-
-...
 ```
 
 ### Text styles
@@ -91,6 +93,6 @@ This is a bold paragraph
 ```
 @center
 This text is centered
-@break
-And this one too
+@break{}
+And this one too but in a new line
 ```
