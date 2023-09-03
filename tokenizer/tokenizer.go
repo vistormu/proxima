@@ -23,6 +23,8 @@ func (t *Tokenizer) GetToken() token.Token {
     if t.skip { t.skipWhitespace() }
     if t.char == '}' { t.skip = false } else { t.skip = true }
 
+    if t.char == '#' { t.skipComment() }
+
     if t.char == '@' {
         tag := t.readTag()
         return token.NewTagToken(tag)
@@ -64,6 +66,11 @@ func (t *Tokenizer) readTag() string {
 } 
 func (t *Tokenizer) skipWhitespace() {
     for t.char == ' ' || t.char == '\t' {
+        t.readChar()
+    }
+}
+func (t *Tokenizer) skipComment() {
+    for t.char != '\n' {
         t.readChar()
     }
 }

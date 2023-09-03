@@ -23,6 +23,8 @@ Its syntax is very simple:
 <text>
 ```
 
+Proxima also supports comments with the `#` character.
+
 ## Installation
 
 First, [install Go](https://go.dev/dl/) if you already don't have it.

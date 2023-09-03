@@ -115,3 +115,40 @@ func TestMultiParagraph(t *testing.T) {
 
     test(t, input, tests)
 }
+
+func TestComment(t *testing.T) {
+    input := `
+    This is the first paragraph.
+
+    # This is a comment
+    
+    This is the second paragraph.
+
+    # This is a
+    # Double line comment
+
+    This is the third paragraph.
+    `
+    tests := []struct {
+        expectedType token.TokenType
+        expectedContent string
+    }{
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the first paragraph."},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the second paragraph."},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the third paragraph."},
+        {token.LINEBREAK, "\n"},
+        {token.EOF, ""},
+    }
+
+    test(t, input, tests)
+}

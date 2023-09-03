@@ -31,7 +31,9 @@ func (p *Parser) Parse() *ast.Document {
 
     for !p.currentTokenIs(token.EOF) {
         paragraph := p.parseParagraph()
-        document.Paragraphs = append(document.Paragraphs, paragraph)
+        if len(paragraph.Content) > 0 {
+            document.Paragraphs = append(document.Paragraphs, paragraph)
+        }
         p.nextToken()
     }
 

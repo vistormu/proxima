@@ -7,6 +7,8 @@ import (
 
 func TestParser(t *testing.T) {
     input := `
+    # This is a comment
+
     This is the first paragraph.
 
     @center
