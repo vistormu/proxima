@@ -1,6 +1,6 @@
 # proxima
 
-[](assets/proxima.png)
+![logo](/assets/proxima.png)
 
 Proxima is a markup language that offers the simplicity of markdown with the power of LaTeX.
 
