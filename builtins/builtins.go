@@ -14,8 +14,8 @@ var Builtins = map[string]BuiltInFunction{
     // Text styles
     "bold": bold,
     "italic": italic,
-    "strike": strike,
-    "underline": underline,
+    "striket": strike,
+    "uline": underline,
 
     // Lists
 

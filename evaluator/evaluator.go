@@ -6,7 +6,7 @@ import (
     "proxima/builtins"
 )
 
-// TODO: change this
+// TMP
 const (
     preamble = `<!DOCTYPE html>
 <html>
@@ -18,12 +18,14 @@ const (
             margin: 27mm 16mm 27mm 16mm;
         }
         .paragraph {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            text-indent: 20px;
+            margin-top: 6px;
+            margin-bottom: 6px;
+            text-indent: 12px;
             text-align: justify;
         }
         .h1 {
+            margin-top: 20px;
+            margin-bottom: 6px;
             font-size: 32px;
             font-weight: bold;
             font-family: sans-serif;
