@@ -79,6 +79,9 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
         if expression != nil {
             paragraph.Content = append(paragraph.Content, expression)
         }
+        if p.paragraphIsTerminated() {
+            break
+        }
         p.nextToken()
     }
 
@@ -111,7 +114,6 @@ func (p *Parser) parseTag() *ast.Tag {
         p.addError("Tag must be followed by a linebreak or an opening brace")
         return nil
     }
-
     p.nextToken()
     p.nextToken()
 

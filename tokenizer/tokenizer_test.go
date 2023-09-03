@@ -80,3 +80,38 @@ func TestTagsAndTagsWithContent(t *testing.T) {
 
     test(t, input, tests)
 }
+
+func TestMultiParagraph(t *testing.T) {
+    input := `
+    This is the first paragraph.
+
+    @center
+    This is the second paragraph.
+
+    This is the third paragraph with @bold{bold text}.
+    `
+    tests := []struct {
+        expectedType token.TokenType
+        expectedContent string
+    }{
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the first paragraph."},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.TAG, "center"},
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the second paragraph."},
+        {token.LINEBREAK, "\n"},
+        {token.LINEBREAK, "\n"},
+        {token.TEXT, "This is the third paragraph with "},
+        {token.TAG, "bold"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "bold text"},
+        {token.RBRACE, "}"},
+        {token.TEXT, "."},
+        {token.LINEBREAK, "\n"},
+        {token.EOF, ""},
+    }
+
+    test(t, input, tests)
+}

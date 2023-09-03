@@ -5,14 +5,11 @@ type BuiltInFunction func(arg string) string
 var Builtins = map[string]BuiltInFunction{
     // Alignment
     "center": center,
-    "justify": justify,
     "left": left,
     "right": right,
 
     // Headings
     "h1": h1,
-    "h2": h2,
-    "h3": h3,
 
     // Text styles
     "bold": bold,
@@ -21,15 +18,11 @@ var Builtins = map[string]BuiltInFunction{
     "underline": underline,
 
     // Lists
-    "bulletlist": bulletlist,
-    "numberlist": numberlist,
 
     // Links
     "url": url,
-    "email": email,
 
     // Images
-    "image": image,
 
     // Other
     "break": breakline,
@@ -37,27 +30,18 @@ var Builtins = map[string]BuiltInFunction{
 
 // Alignment
 func center(arg string) string {
-    return `<div style="text-align: center">` + arg + `</div>`
-}
-func justify(arg string) string {
-    return `<div style="text-align: justify">` + arg + `</div>`
+    return "<div class=\"paragraph center\">\n\t" + arg + "\n</div>\n"
 }
 func left(arg string) string {
-    return `<div style="text-align: left">` + arg + `</div>`
+    return "<div class=\"paragraph left\">\n\t" + arg + "\n</div>\n"
 }
 func right(arg string) string {
-    return `<div style="text-align: right">` + arg + `</div>`
+    return "<div class=\"paragraph right\">\n\t" + arg + "\n</div>\n"
 }
 
 // Headings
 func h1(arg string) string {
-    return `<h1>` + arg + `</h1>`
-}
-func h2(arg string) string {
-    return `<h2>` + arg + `</h2>`
-}
-func h3(arg string) string {
-    return `<h3>` + arg + `</h3>`
+    return "<div class=\"h1\">\n\t" + arg + "\n</div>\n"
 }
 
 // Text styles
@@ -75,25 +59,13 @@ func underline(arg string) string {
 }
 
 // Lists
-func bulletlist(arg string) string {
-    return `<ul>` + arg + `</ul>`
-}
-func numberlist(arg string) string {
-    return `<ol>` + arg + `</ol>`
-}
 
 // Links
 func url(arg string) string {
     return `<a href="` + arg + `">` + arg + `</a>`
 }
-func email(arg string) string {
-    return `<a href="mailto:` + arg + `">` + arg + `</a>`
-}
 
 // Images
-func image(arg string) string {
-    return `<img src="` + arg + `">`
-}
 
 // Other
 func breakline(arg string) string {

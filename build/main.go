@@ -11,8 +11,47 @@ import (
 
 const (
     MAIN_EXT = ".prox"
-    STYLES_EXT = ".prox"
+    STYLES_EXT = ".css"
 )
+
+const preamble = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 27mm 16mm 27mm 16mm;
+        }
+        .paragraph {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-indent: 20px;
+            text-align: justify;
+        }
+        .h1 {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+        .center {
+            text-align: center;
+        }
+        .right {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+`
+const postamble = `
+</body>
+</html>
+`
 
 func main() {
     if len(os.Args) != 2 {
@@ -55,7 +94,17 @@ func main() {
     }
     defer file.Close()
 
+    _, err = file.WriteString(preamble)
+    if err != nil {
+        panic(err)
+    }
+
     _, err = file.WriteString(evaluated)
+    if err != nil {
+        panic(err)
+    }
+
+    _, err = file.WriteString(postamble)
     if err != nil {
         panic(err)
     }

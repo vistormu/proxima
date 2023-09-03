@@ -44,7 +44,7 @@ func (e *Evaluator) evalDocument(document *ast.Document) string {
     var result string
 
     for _, paragraph := range document.Paragraphs {
-        result += `<p>` + e.Eval(paragraph) + `</p>` + "\n"
+        result += e.Eval(paragraph)
     }
 
     return result
@@ -52,8 +52,14 @@ func (e *Evaluator) evalDocument(document *ast.Document) string {
 func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
     var result string
 
+    _, isText := paragraph.Content[0].(*ast.Text)
+
     for _, inline := range paragraph.Content {
         result += e.Eval(inline)
+    }
+
+    if isText {
+        result = "<div class=\"paragraph\">\n\t" + result + "\n</div>\n"
     }
 
     return result

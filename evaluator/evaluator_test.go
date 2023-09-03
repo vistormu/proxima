@@ -5,48 +5,45 @@ import (
 	"testing"
 )
 
-func TestEvalText(t *testing.T) {
-    tests := []struct { 
-        input string
-        expected string
-    }{
-        {"Hello, World!", "<p>Hello, World!</p>\n"},
-    }
+func TestEval(t *testing.T) {
+    input := `
+    @h1
+    This is a section title
 
-    for _, test := range tests {
-        testString(t, test.input, test.expected)
-    }
+    This is a paragraph.
+
+    @center
+    This is a centered paragraph.
+
+    @right
+    And this one is right-aligned.
+
+    @center
+    This one is centered again, but it has @bold{bold text} in it.
+    `
+    expected := `<div class="h1">
+    This is a section title
+</div>
+
+<div class="paragraph">
+    This is a paragraph.
+</div>
+
+<div class="paragraph center">
+    This is a centered paragraph.
+</div>
+
+<div class="paragraph right">
+    And this one is right-aligned.
+</div>
+
+<div class="paragraph center">
+    This one is centered again, but it has <strong>bold text</strong> in it.
+</div>
+`
+    testString(t, input, expected)
 }
 
-func TestEvalTag(t *testing.T) {
-    tests := []struct { 
-        input string
-        expected string
-    }{
-        {"@bold{Hello, World!}", "<p><b>Hello, World!</b></p>\n"},
-    }
-
-    for _, test := range tests {
-        evaluated := testEval(test.input)
-        testString(t, evaluated, test.expected)
-    }
-}
-
-func TestTagWrap(t *testing.T) {
-    tests := []struct { 
-        input string
-        expected string
-    }{
-        {`@center
-        This is centered text`,
-        "<p><center>This is centered text</center></p>\n"},
-    }
-
-    for _, test := range tests {
-        evaluated := testEval(test.input)
-        testString(t, evaluated, test.expected)
-    }
-}
 
 // HELPERS
 func testEval(input string) string {
@@ -60,6 +57,6 @@ func testString(t *testing.T, input string, expected string) {
     evaluated := testEval(input)
 
     if evaluated != expected {
-        t.Errorf("Expected %q, got %q", expected, evaluated)
+        t.Errorf("Expected:\n %q\n Got:\n %q", expected, evaluated)
     }
 }
