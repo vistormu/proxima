@@ -1,24 +1,26 @@
-@center{
-    This is centered text!
-}
+@center
+This is centered text!
+This is also centered and in the same line
+@break{}
+And this is in another line and centered
 
-@justify{
-    This is justified text!
-}
+@justify
+This is justified text!
 
-@right{
-    To the right
-}
+@right
+To the right
 
-@left{
-    To the left
-}
+@left
+To the left
 
-@h1{Section}
+@h1
+Section
 
-@h2{Subsection}
+@h2
+Subsection
 
-@h3{Subsubsection}
+@h3
+Subsubsection
 
 @bold{bold}, @italic{italic}, @strike{st} and @underline{underlined}
 

@@ -86,18 +86,20 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
 }
 
 func (p *Parser) parseInline() ast.Inline {
-    if p.currentTokenIs(token.LINEBREAK) {
+    switch p.currentToken.Type {
+    case token.LINEBREAK:
+        return nil
+
+    case token.TEXT:
+        return p.parseText()
+
+    case token.TAG:
+        return p.parseTag()
+
+    default:
+        p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
         return nil
     }
-    if p.currentTokenIs(token.TEXT) {
-        return p.parseText()
-    }
-    if p.currentTokenIs(token.TAG) {
-        return p.parseTag()
-    }
-    
-    p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
-    return nil
 }
 func (p *Parser) parseText() *ast.Text {
     return &ast.Text{Content: p.currentToken.Literal}
@@ -105,14 +107,15 @@ func (p *Parser) parseText() *ast.Text {
 func (p *Parser) parseTag() *ast.Tag {
     tag := &ast.Tag{Name: p.currentToken.Literal}
 
-    if !p.peekTokenIs(token.LBRACE) {
-        p.addError("Expected '{' after tag name")
-        return tag
+    if !p.peekTokenIs(token.LINEBREAK) && !p.peekTokenIs(token.LBRACE) {
+        p.addError("Tag must be followed by a linebreak or an opening brace")
+        return nil
     }
+
     p.nextToken()
     p.nextToken()
 
-    for !p.currentTokenIs(token.RBRACE) {
+    for !p.currentTokenIs(token.RBRACE) && !p.paragraphIsTerminated() {
         expression := p.parseInline()
         if expression != nil {
             tag.Content = append(tag.Content, expression)
