@@ -6,7 +6,9 @@
     </a>
 </p>
 
-Proxima is a markup language that offers the simplicity of markdown with the power of LaTeX.
+Proxima is a markup language that offers the simplicity of Markdown with the power of LaTeX.
+
+> It is currently under development, so actually it is not even as powerful as Markdown ;).
 
 Its syntax is very simple:
 

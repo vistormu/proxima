@@ -4,6 +4,7 @@ import (
     "io"
     "io/ioutil"
     "os"
+    "os/exec"
     "strings"
     "proxima/parser"
     "proxima/evaluator"
@@ -11,59 +12,21 @@ import (
 
 const (
     MAIN_EXT = ".prox"
-    STYLES_EXT = ".css"
 )
-
-const preamble = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Document</title>
-
-    <style>
-        @page {
-            size: A4;
-            margin: 27mm 16mm 27mm 16mm;
-        }
-        .paragraph {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            text-indent: 20px;
-            text-align: justify;
-        }
-        .h1 {
-            font-size: 32px;
-            font-weight: bold;
-            font-family: sans-serif;
-        }
-        .center {
-            text-align: center;
-        }
-        .right {
-            text-align: right;
-        }
-    </style>
-</head>
-
-<body>
-`
-const postamble = `
-</body>
-</html>
-`
 
 func main() {
     if len(os.Args) != 2 {
         panic("Usage: proxima <filename>")
     }
 
-    filename := os.Args[1]
-    if !strings.HasSuffix(filename, MAIN_EXT) {
+    // <filename>.prox
+    filename := os.Args[1][:strings.LastIndex(os.Args[1], ".")]
+    extension := os.Args[1][strings.LastIndex(os.Args[1], "."):]
+    if extension != MAIN_EXT {
         panic("File must have .prox extension")
     }
 
-    content, err := ioutil.ReadFile(filename)
+    content, err := ioutil.ReadFile(filename + extension)
     if err != nil {
         panic(err)
     }
@@ -94,17 +57,19 @@ func main() {
     }
     defer file.Close()
 
-    _, err = file.WriteString(preamble)
-    if err != nil {
-        panic(err)
-    }
-
     _, err = file.WriteString(evaluated)
     if err != nil {
         panic(err)
     }
 
-    _, err = file.WriteString(postamble)
+    cmd := exec.Command("wkhtmltopdf", "index.html", filename + ".pdf")
+    err = cmd.Run()
+    if err != nil {
+        panic(err)
+    }
+
+    cmd = exec.Command("rm", "index.html")
+    err = cmd.Run()
     if err != nil {
         panic(err)
     }

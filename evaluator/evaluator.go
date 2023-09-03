@@ -6,10 +6,46 @@ import (
     "proxima/builtins"
 )
 
+// TODO: change this
+const (
+    preamble = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 27mm 16mm 27mm 16mm;
+        }
+        .paragraph {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-indent: 20px;
+            text-align: justify;
+        }
+        .h1 {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+        .center {
+            text-align: center;
+        }
+        .right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    `
+    postamble = `</body>
+</html>
+`
+)
+
 type Evaluator struct {
     Errors []error.Error
 }
-
 
 // PUBLIC
 func New() *Evaluator {
@@ -46,6 +82,8 @@ func (e *Evaluator) evalDocument(document *ast.Document) string {
     for _, paragraph := range document.Paragraphs {
         result += e.Eval(paragraph)
     }
+
+    result = preamble + result + postamble
 
     return result
 }
