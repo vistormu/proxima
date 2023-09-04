@@ -13,28 +13,31 @@ const (
 <head>
     <meta charset="UTF-8">
     <style>
-        @page {
-            size: A4;
-            margin: 27mm 16mm 27mm 16mm;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Lora&family=Roboto&display=swap');
         .paragraph {
+            font-family: "Lora", serif;
+            font-size: 12pt;
             margin-top: 6px;
             margin-bottom: 6px;
             text-indent: 12px;
             text-align: justify;
+            line-height: 1.5;
         }
         .h1 {
-            margin-top: 20px;
-            margin-bottom: 6px;
-            font-size: 32px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            font-size: 24px;
             font-weight: bold;
-            font-family: sans-serif;
+            font-family: "Roboto", sans-serif;
         }
-        .center {
+        #center {
             text-align: center;
         }
-        .right {
+        #right {
             text-align: right;
+        }
+        #monospace {
+            font-family: monospace;
         }
     </style>
 </head>

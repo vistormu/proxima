@@ -9,6 +9,7 @@ var Builtins = map[string]BuiltInFunction{
     "right": right,
 
     // Headings
+    "h0": h0,
     "h1": h1,
 
     // Text styles
@@ -16,6 +17,8 @@ var Builtins = map[string]BuiltInFunction{
     "italic": italic,
     "striket": strike,
     "uline": underline,
+
+    "monospace": monospace,
 
     // Lists
 
@@ -26,20 +29,24 @@ var Builtins = map[string]BuiltInFunction{
 
     // Other
     "break": breakline,
+    "line": line,
 }
 
 // Alignment
 func center(arg string) string {
-    return "<div class=\"paragraph center\">\n\t" + arg + "\n</div>\n"
+    return "<div class=\"paragraph\" id=\"center\">\n\t" + arg + "\n</div>\n"
 }
 func left(arg string) string {
-    return "<div class=\"paragraph left\">\n\t" + arg + "\n</div>\n"
+    return "<div class=\"paragraph\" id=\"left\">\n\t" + arg + "\n</div>\n"
 }
 func right(arg string) string {
-    return "<div class=\"paragraph right\">\n\t" + arg + "\n</div>\n"
+    return "<div class=\"paragraph\" id=\"right\">\n\t" + arg + "\n</div>\n"
 }
 
 // Headings
+func h0(arg string) string {
+    return "<div class=\"h0\">\n\t" + arg + "\n</div>\n"
+}
 func h1(arg string) string {
     return "<div class=\"h1\">\n\t" + arg + "\n</div>\n"
 }
@@ -58,6 +65,10 @@ func underline(arg string) string {
     return `<u>` + arg + `</u>`
 }
 
+func monospace(arg string) string {
+    return `<div class="paragraph" id="monospace">` + arg + `</div>`
+}
+
 // Lists
 
 // Links
@@ -70,4 +81,7 @@ func url(arg string) string {
 // Other
 func breakline(arg string) string {
     return `<br>`
+}
+func line(arg string) string {
+    return `<hr>`
 }
