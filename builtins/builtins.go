@@ -11,6 +11,8 @@ var Builtins = map[string]BuiltInFunction{
     // Headings
     "h0": h0,
     "h1": h1,
+    "h2": h2,
+    "h3": h3,
 
     // Text styles
     "bold": bold,
@@ -26,6 +28,7 @@ var Builtins = map[string]BuiltInFunction{
     "url": url,
 
     // Images
+    "image": image,
 
     // Other
     "break": breakline,
@@ -49,6 +52,12 @@ func h0(arg string) string {
 }
 func h1(arg string) string {
     return "<div class=\"h1\">\n\t" + arg + "\n</div>\n"
+}
+func h2(arg string) string {
+    return "<div class=\"h2\">\n\t" + arg + "\n</div>\n"
+}
+func h3(arg string) string {
+    return "<div class=\"h3\">\n\t" + arg + "\n</div>\n"
 }
 
 // Text styles
@@ -77,6 +86,9 @@ func url(arg string) string {
 }
 
 // Images
+func image(arg string) string {
+    return `<img src="` + arg + `">`
+}
 
 // Other
 func breakline(arg string) string {

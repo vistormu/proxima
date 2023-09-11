@@ -21,12 +21,26 @@ const (
             margin-bottom: 6px;
             text-indent: 12px;
             text-align: justify;
-            line-height: 1.5;
+            line-height: 1.25;
         }
         .h1 {
             margin-top: 32px;
             margin-bottom: 12px;
             font-size: 24px;
+            font-weight: bold;
+            font-family: "Roboto", sans-serif;
+        }
+        .h2 {
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            font-family: "Roboto", sans-serif;
+        }
+        .h3 {
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 18px;
             font-weight: bold;
             font-family: "Roboto", sans-serif;
         }
@@ -117,7 +131,7 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
 
     function, ok := builtins.Builtins[tag.Name]
     if !ok {
-        return ""
+        return "??"
     }
     for _, inline := range tag.Content {
         result += e.Eval(inline)
