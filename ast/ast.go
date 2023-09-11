@@ -19,18 +19,16 @@ type Text struct {
     Content string
 }
 
-type InlineTag struct {
+type TagType int
+const (
+    WRAPPING TagType = iota
+    BRACKETED
+    SELF_CLOSING
+)
+
+type Tag struct {
     Inline
     Name string
-    Content []Inline
-}
-type BracketedTag struct {
-    Inline
-    Name string
-    Content []Inline
-}
-type SelfClosingTag struct {
-    Inline
-    Name string
+    Type TagType
     Content []Inline
 }

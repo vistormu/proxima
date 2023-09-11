@@ -5,80 +5,249 @@ import (
     "proxima/ast"
 )
 
-func TestParser(t *testing.T) {
-    input := `
-    # This is a comment
-
-    This is the first paragraph.
-
-    @center
-    This is the second paragraph.
-
-    This is the third paragraph with @bold{bold text}.
-    `
+func TestText(t *testing.T) {
+    input := `This is a paragraph of text.`
     p := New(input)
     document := p.Parse()
 
     checkParserErrors(t, p)
 
-    if len(document.Paragraphs) != 3 {
-        t.Fatalf("document should have 3 paragraphs, got %d", len(document.Paragraphs))
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
     }
 
-    text, ok := document.Paragraphs[0].Content[0].(*ast.Text)
-    if !ok {
-        t.Fatalf("paragraph should have text, got %T", document.Paragraphs[0].Content[0])
-    }
-    if text.Content != "This is the first paragraph." {
-        t.Fatalf("text should be 'This is the first paragraph.', got %s", text.Content)
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
     }
 
-    tag, ok := document.Paragraphs[1].Content[0].(*ast.Tag)
+    text, ok := paragraph.Content[0].(*ast.Text)
     if !ok {
-        t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[1].Content[0])
+        t.Fatalf("paragraph should contain a text inline")
     }
+
+    if text.Content != "This is a paragraph of text." {
+        t.Fatalf("text inline should contain 'This is a paragraph of text.', got '%s'", text.Content)
+    }
+}
+
+func TestWrappingTag(t *testing.T) {
+    input := `
+@center
+This is a paragraph of text.
+`
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
     if tag.Name != "center" {
-        t.Fatalf("tag name should be 'center', got %s", tag.Name)
+        t.Fatalf("tag should be named 'center', got '%s'", tag.Name)
     }
 
-    text, ok = tag.Content[0].(*ast.Text)
-    if !ok {
-        t.Fatalf("tag should have text, got %T", tag.Content[0])
-    }
-    if text.Content != "This is the second paragraph." {
-        t.Fatalf("text should be 'This is the second paragraph.', got %s", text.Content)
+    if tag.Type != ast.WRAPPING {
+        t.Fatalf("tag should be wrapping, got '%d'", tag.Type)
     }
 
-    text, ok = document.Paragraphs[2].Content[0].(*ast.Text)
-    if !ok {
-        t.Fatalf("paragraph should have text, got %T", document.Paragraphs[2].Content[0])
-    }
-    if text.Content != "This is the third paragraph with " {
-        t.Fatalf("text should be 'This is the third paragraph with ', got %s", text.Content)
+    if len(tag.Content) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
     }
 
-    tag, ok = document.Paragraphs[2].Content[1].(*ast.Tag)
+    text, ok := tag.Content[0].(*ast.Text)
     if !ok {
-        t.Fatalf("paragraph should have a tag, got %T", document.Paragraphs[2].Content[1])
+        t.Fatalf("tag should contain a text inline")
     }
+
+    if text.Content != "This is a paragraph of text." {
+        t.Fatalf("text inline should contain 'This is a paragraph of text.', got '%s'", text.Content)
+    }
+}
+
+func TestBracketedTag(t *testing.T) {
+    input := `@bold{This is a paragraph of text.}`
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
     if tag.Name != "bold" {
-        t.Fatalf("tag name should be 'bold', got %s", tag.Name)
+        t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
+    }
+
+    if tag.Type != ast.BRACKETED {
+        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
+    }
+
+    if len(tag.Content) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    }
+
+    text, ok := tag.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "This is a paragraph of text." {
+        t.Fatalf("text inline should contain 'This is a paragraph of text.', got '%s'", text.Content)
+    }
+}
+
+func TestSelfClosingTag(t *testing.T) {
+    input := `
+@line
+
+this is more text @rightarrow and more text
+`
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 2 {
+        t.Fatalf("document should contain 2 paragraphs, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
     }
     
-    text, ok = tag.Content[0].(*ast.Text)
-    if !ok {
-        t.Fatalf("tag should have text, got %T", tag.Content[0])
-    }
-    if text.Content != "bold text" {
-        t.Fatalf("text should be 'bold text', got %s", text.Content)
+    if tag.Name != "line" {
+        t.Fatalf("tag should be named 'line', got '%s'", tag.Name)
     }
 
-    text, ok = document.Paragraphs[2].Content[2].(*ast.Text)
-    if !ok {
-        t.Fatalf("paragraph should have text, got %T", document.Paragraphs[2].Content[2])
+    if tag.Type != ast.SELF_CLOSING {
+        t.Fatalf("tag should be self closing, got '%d'", tag.Type)
     }
-    if text.Content != "." {
-        t.Fatalf("text should be '.', got %s", text.Content)
+
+    if len(tag.Content) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Content))
+    }
+
+    paragraph = document.Paragraphs[1]
+    if len(paragraph.Content) != 3 {
+        t.Fatalf("paragraph should contain 3 inlines, got %d", len(paragraph.Content))
+    }
+
+    text, ok := paragraph.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != "this is more text " {
+        t.Fatalf("text inline should contain 'this is more text ', got '%s'", text.Content)
+    }
+
+    tag, ok = paragraph.Content[1].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "rightarrow" {
+        t.Fatalf("tag should be named 'rightarrow', got '%s'", tag.Name)
+    }
+
+    if tag.Type != ast.SELF_CLOSING {
+        t.Fatalf("tag should be self closing, got '%d'", tag.Type)
+    }
+
+    if len(tag.Content) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Content))
+    }
+
+    text, ok = paragraph.Content[2].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != " and more text" {
+        t.Fatalf("text inline should contain ' and more text', got '%s'", text.Content)
+    }
+}
+
+func TestParseEscapeCharacter(t *testing.T) {
+    input := `\@escape \@character`
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 4 {
+        t.Fatalf("paragraph should contain 4 inline, got %d", len(paragraph.Content))
+    }
+
+    text, ok := paragraph.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != "@" {
+        t.Fatalf("text inline should contain '@', got '%s'", text.Content)
+    }
+
+    text_2, ok := paragraph.Content[1].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text_2.Content != "escape " {
+        t.Fatalf("text inline should contain 'escape ', got '%s'", text_2.Content)
+    }
+
+    text_3, ok := paragraph.Content[2].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text_3.Content != "@" {
+        t.Fatalf("text inline should contain '@', got '%s'", text_3.Content)
+    }
+
+    text_4, ok := paragraph.Content[3].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text_4.Content != "character" {
+        t.Fatalf("text inline should contain 'character', got '%s'", text_4.Content)
     }
 }
 

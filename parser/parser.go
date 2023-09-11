@@ -2,6 +2,7 @@ package parser
 
 import (
     "fmt"
+    "strings"
     "proxima/token"
     "proxima/tokenizer"
     "proxima/ast"
@@ -101,6 +102,9 @@ func (p *Parser) parseInline() ast.Inline {
     case token.TAG:
         return p.parseTag()
 
+    case token.BACKSLASH:
+        return p.parseEscape()
+
     default:
         p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
         return nil
@@ -110,22 +114,55 @@ func (p *Parser) parseText() *ast.Text {
     return &ast.Text{Content: p.currentToken.Literal}
 }
 func (p *Parser) parseTag() *ast.Tag {
-    tag := &ast.Tag{Name: p.currentToken.Literal}
-
-    if !p.peekTokenIs(token.LINEBREAK) && !p.peekTokenIs(token.LBRACE) {
-        p.addError("Tag must be followed by a linebreak or an opening brace")
-        return nil
+    switch p.peekToken.Type {
+    case token.LINEBREAK:
+        return p.parseWrappingTag()
+    case token.LBRACE:
+        return p.parseBracketedTag()
+    default:
+        return p.parseSelfClosingTag()
+    }
+}
+func (p *Parser) parseWrappingTag() *ast.Tag {
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.WRAPPING}
+    p.nextToken()
+    
+    if p.peekTokenIs(token.LINEBREAK) {
+        tag.Type = ast.SELF_CLOSING
+        return tag
     }
     p.nextToken()
-    p.nextToken()
 
-    for !p.currentTokenIs(token.RBRACE) && !p.paragraphIsTerminated() {
+    for !p.paragraphIsTerminated() {
         expression := p.parseInline()
         if expression != nil {
             tag.Content = append(tag.Content, expression)
         }
         p.nextToken()
     }
+     
+    return tag
+}
+func (p *Parser) parseBracketedTag() *ast.Tag {
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.BRACKETED}
+    p.nextToken()
+    p.nextToken()
+
+    for !p.currentTokenIs(token.RBRACE) {
+        expression := p.parseInline()
+        if expression != nil {
+            tag.Content = append(tag.Content, expression)
+        }
+        p.nextToken()
+    }
+    p.nextToken()
 
     return tag
+}
+func (p *Parser) parseSelfClosingTag() *ast.Tag {
+    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.SELF_CLOSING}
+}
+func (p *Parser) parseEscape() *ast.Text {
+    p.nextToken()
+    return &ast.Text{Content: p.currentToken.Literal}
 }
