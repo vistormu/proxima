@@ -31,7 +31,7 @@ func TestTag(t *testing.T) {
         expectedType token.TokenType
         expectedContent string
     }{
-        {token.TAG, "center"},
+        {token.TAG, "@center"},
         {token.EOF, ""},
     }
 
@@ -45,7 +45,7 @@ func TestTagWithContent(t *testing.T) {
         expectedType token.TokenType
         expectedContent string
     }{
-        {token.TAG, "bold"},
+        {token.TAG, "@bold"},
         {token.LBRACE, "{"},
         {token.TEXT, "This is bold text!"},
         {token.RBRACE, "}"},
@@ -57,19 +57,19 @@ func TestTagWithContent(t *testing.T) {
 
 func TestTagsAndTagsWithContent(t *testing.T) {
     input := `
-    @center
-    This is centered and @bold{bold} text!
-    `
+@center
+This is centered and @bold{bold} text!
+`
 
     tests := []struct {
         expectedType token.TokenType
         expectedContent string
     }{
         {token.LINEBREAK, "\n"},
-        {token.TAG, "center"},
+        {token.TAG, "@center"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is centered and "},
-        {token.TAG, "bold"},
+        {token.TAG, "@bold"},
         {token.LBRACE, "{"},
         {token.TEXT, "bold"},
         {token.RBRACE, "}"},
@@ -83,13 +83,13 @@ func TestTagsAndTagsWithContent(t *testing.T) {
 
 func TestMultiParagraph(t *testing.T) {
     input := `
-    This is the first paragraph.
+This is the first paragraph.
 
-    @center
-    This is the second paragraph.
+@center
+This is the second paragraph.
 
-    This is the third paragraph with @bold{bold text}.
-    `
+This is the third paragraph with @bold{bold text}.
+`
     tests := []struct {
         expectedType token.TokenType
         expectedContent string
@@ -98,13 +98,13 @@ func TestMultiParagraph(t *testing.T) {
         {token.TEXT, "This is the first paragraph."},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
-        {token.TAG, "center"},
+        {token.TAG, "@center"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the second paragraph."},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the third paragraph with "},
-        {token.TAG, "bold"},
+        {token.TAG, "@bold"},
         {token.LBRACE, "{"},
         {token.TEXT, "bold text"},
         {token.RBRACE, "}"},
@@ -118,17 +118,17 @@ func TestMultiParagraph(t *testing.T) {
 
 func TestComment(t *testing.T) {
     input := `
-    This is the first paragraph.
+This is the first paragraph.
 
-    # This is a comment
-    
-    This is the second paragraph.
+# This is a comment
 
-    # This is a
-    # Double line comment
+This is the second paragraph.
 
-    This is the third paragraph.
-    `
+# This is a
+# Double line comment
+
+This is the third paragraph.
+`
     tests := []struct {
         expectedType token.TokenType
         expectedContent string
@@ -137,16 +137,42 @@ func TestComment(t *testing.T) {
         {token.TEXT, "This is the first paragraph."},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
+        {token.HASH, "#"},
+        {token.TEXT, " This is a comment"},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the second paragraph."},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
+        {token.HASH, "#"},
+        {token.TEXT, " This is a"},
         {token.LINEBREAK, "\n"},
+        {token.HASH, "#"},
+        {token.TEXT, " Double line comment"},
         {token.LINEBREAK, "\n"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the third paragraph."},
         {token.LINEBREAK, "\n"},
+        {token.EOF, ""},
+    }
+
+    test(t, input, tests)
+}
+
+func TestEscacpeCharacter(t *testing.T) {
+    input := `This is a \{escaped\} character`
+
+    tests := []struct {
+        expectedType token.TokenType
+        expectedContent string
+    }{
+        {token.TEXT, "This is a "},
+        {token.BACKSLASH, "\\"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "escaped"},
+        {token.BACKSLASH, "\\"},
+        {token.RBRACE, "}"},
+        {token.TEXT, " character"},
         {token.EOF, ""},
     }
 

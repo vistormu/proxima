@@ -8,10 +8,13 @@ const (
 
     TAG
     TEXT
+
     LINEBREAK
     LBRACE
     RBRACE
     DASH
+    BACKSLASH
+    HASH
 )
 
 var TypeToString = map[TokenType]string{
@@ -20,10 +23,13 @@ var TypeToString = map[TokenType]string{
 
     TAG: "TAG",
     TEXT: "TEXT",
+
     LINEBREAK: "LINEBREAK",
     LBRACE: "LBRACE",
     RBRACE: "RBRACE",
     DASH: "DASH",
+    BACKSLASH: "BACKSLASH",
+    HASH: "HASH",
 }
 
 type Token struct {
@@ -31,16 +37,18 @@ type Token struct {
     Literal string
 }
 
-var characters = map[byte]Token{
+var Characters = map[byte]Token{
     0: {EOF, ""},
     '\n': {LINEBREAK, "\n"},
     '{': {LBRACE, "{"},
     '}': {RBRACE, "}"},
     '-': {DASH, "-"},
+    '\\': {BACKSLASH, "\\"},
+    '#': {HASH, "#"},
 }
 
 func NewCharToken(char byte) Token {
-    token, ok := characters[char]
+    token, ok := Characters[char]
     if !ok {
         return Token{ILLEGAL, string(char)}
     }
