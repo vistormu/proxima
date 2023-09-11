@@ -19,7 +19,17 @@ type Text struct {
     Content string
 }
 
-type Tag struct {
+type InlineTag struct {
+    Inline
+    Name string
+    Content []Inline
+}
+type BracketedTag struct {
+    Inline
+    Name string
+    Content []Inline
+}
+type SelfClosingTag struct {
     Inline
     Name string
     Content []Inline

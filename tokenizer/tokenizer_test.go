@@ -160,19 +160,21 @@ This is the third paragraph.
 }
 
 func TestEscacpeCharacter(t *testing.T) {
-    input := `This is a \{escaped\} character`
+    input := `text \@ \{ \}`
 
     tests := []struct {
         expectedType token.TokenType
         expectedContent string
     }{
-        {token.TEXT, "This is a "},
+        {token.TEXT, "text "},
+        {token.BACKSLASH, "\\"},
+        {token.TAG, "@"},
+        {token.TEXT, " "},
         {token.BACKSLASH, "\\"},
         {token.LBRACE, "{"},
-        {token.TEXT, "escaped"},
+        {token.TEXT, " "},
         {token.BACKSLASH, "\\"},
         {token.RBRACE, "}"},
-        {token.TEXT, " character"},
         {token.EOF, ""},
     }
 

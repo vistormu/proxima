@@ -15,6 +15,7 @@ const (
     DASH
     BACKSLASH
     HASH
+    AT
 )
 
 var TypeToString = map[TokenType]string{
