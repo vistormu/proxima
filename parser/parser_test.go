@@ -251,6 +251,103 @@ func TestParseEscapeCharacter(t *testing.T) {
     }
 }
 
+func TestTextAndTags(t *testing.T) {
+    input := `This is a paragraph of text with @bold{bold text} and @italic{italic text}.`
+
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 5 {
+        t.Fatalf("paragraph should contain 5 inlines, got %d", len(paragraph.Content))
+    }
+
+    text, ok := paragraph.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != "This is a paragraph of text with " {
+        t.Fatalf("text inline should contain 'This is a paragraph of text with ', got '%s'", text.Content)
+    }
+
+    tag, ok := paragraph.Content[1].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "bold" {
+        t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
+    }
+
+    if tag.Type != ast.BRACKETED {
+        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
+    }
+
+    if len(tag.Content) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    }
+
+    text, ok = tag.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "bold text" {
+        t.Fatalf("text inline should contain 'bold text', got '%s'", text.Content)
+    }
+
+    text, ok = paragraph.Content[2].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != " and " {
+        t.Fatalf("text inline should contain ' and ', got '%s'", text.Content)
+    }
+
+    tag, ok = paragraph.Content[3].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "italic" {
+        t.Fatalf("tag should be named 'italic', got '%s'", tag.Name)
+    }
+
+    if tag.Type != ast.BRACKETED {
+        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
+    }
+
+    if len(tag.Content) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    }
+
+    text, ok = tag.Content[0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "italic text" {
+        t.Fatalf("text inline should contain 'italic text', got '%s'", text.Content)
+    }
+
+    text, ok = paragraph.Content[4].(*ast.Text)
+    if !ok {
+        t.Fatalf("paragraph should contain a text inline")
+    }
+
+    if text.Content != "." {
+        t.Fatalf("text inline should contain '.', got '%s'", text.Content)
+    }
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
     errors := p.Errors
 

@@ -12,10 +12,7 @@ const (
     LINEBREAK
     LBRACE
     RBRACE
-    DASH
-    BACKSLASH
     HASH
-    AT
 )
 
 var TypeToString = map[TokenType]string{
@@ -28,8 +25,6 @@ var TypeToString = map[TokenType]string{
     LINEBREAK: "LINEBREAK",
     LBRACE: "LBRACE",
     RBRACE: "RBRACE",
-    DASH: "DASH",
-    BACKSLASH: "BACKSLASH",
     HASH: "HASH",
 }
 
@@ -43,8 +38,6 @@ var Characters = map[byte]Token{
     '\n': {LINEBREAK, "\n"},
     '{': {LBRACE, "{"},
     '}': {RBRACE, "}"},
-    '-': {DASH, "-"},
-    '\\': {BACKSLASH, "\\"},
     '#': {HASH, "#"},
 }
 

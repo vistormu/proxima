@@ -62,7 +62,7 @@ func main() {
         panic(err)
     }
 
-    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "index.html", filename + ".pdf"}
+    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "--enable-local-file-access", "index.html", filename + ".pdf"}
     cmd := exec.Command(cmdPrompt[0], cmdPrompt[1:]...)
     err = cmd.Run()
     if err != nil {

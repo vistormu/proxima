@@ -95,16 +95,12 @@ func (p *Parser) parseInline() ast.Inline {
     switch p.currentToken.Type {
     case token.LINEBREAK:
         return nil
-
     case token.TEXT:
         return p.parseText()
-
     case token.TAG:
         return p.parseTag()
-
-    case token.BACKSLASH:
-        return p.parseEscape()
-
+    case token.HASH:
+        return p.parseComment()
     default:
         p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
         return nil
@@ -131,7 +127,6 @@ func (p *Parser) parseWrappingTag() *ast.Tag {
         tag.Type = ast.SELF_CLOSING
         return tag
     }
-    p.nextToken()
 
     for !p.paragraphIsTerminated() {
         expression := p.parseInline()
@@ -155,14 +150,20 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
         }
         p.nextToken()
     }
-    p.nextToken()
 
     return tag
 }
 func (p *Parser) parseSelfClosingTag() *ast.Tag {
     return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.SELF_CLOSING}
 }
-func (p *Parser) parseEscape() *ast.Text {
+func (p *Parser) parseComment() *ast.Comment {
+    comment := &ast.Comment{}
     p.nextToken()
-    return &ast.Text{Content: p.currentToken.Literal}
+
+    for !p.currentTokenIs(token.LINEBREAK) {
+        comment.Content += p.currentToken.Literal
+        p.nextToken()
+    }
+
+    return comment
 }

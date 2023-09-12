@@ -167,14 +167,11 @@ func TestEscacpeCharacter(t *testing.T) {
         expectedContent string
     }{
         {token.TEXT, "text "},
-        {token.BACKSLASH, "\\"},
-        {token.TAG, "@"},
+        {token.TEXT, "@"},
         {token.TEXT, " "},
-        {token.BACKSLASH, "\\"},
-        {token.LBRACE, "{"},
+        {token.TEXT, "{"},
         {token.TEXT, " "},
-        {token.BACKSLASH, "\\"},
-        {token.RBRACE, "}"},
+        {token.TEXT, "}"},
         {token.EOF, ""},
     }
 

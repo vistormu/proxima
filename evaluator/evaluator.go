@@ -80,6 +80,8 @@ func (e *Evaluator) Eval(node ast.Node) string {
         return e.evalText(node)
     case *ast.Tag:
         return e.evalTag(node)
+    case *ast.Comment:
+        return ""
     default:
         e.addError("Unknown node type")
         return ""
@@ -110,12 +112,17 @@ func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
     var result string
 
     _, isText := paragraph.Content[0].(*ast.Text)
+    _, isTag := paragraph.Content[0].(*ast.Tag)
+    isBracketedTag := false
+    if isTag && paragraph.Content[0].(*ast.Tag).Type == ast.BRACKETED {
+        isBracketedTag = true
+    }
 
     for _, inline := range paragraph.Content {
         result += e.Eval(inline)
     }
 
-    if isText {
+    if isText || isBracketedTag {
         result = "<div class=\"paragraph\">\n\t" + result + "\n</div>\n"
     }
 
@@ -131,13 +138,18 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
 
     function, ok := builtins.Builtins[tag.Name]
     if !ok {
+        e.addError("Unknown tag")
         return "??"
     }
     for _, inline := range tag.Content {
         result += e.Eval(inline)
     }
 
-    result = function(result)
+    result = function(result, tag.Type)
+    if result == "" {
+        e.addError("Tag function returned empty string")
+        return "??"
+    }
 
     return result
 }

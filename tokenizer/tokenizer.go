@@ -19,6 +19,12 @@ func New(input string) *Tokenizer {
 }
 
 func (t *Tokenizer) GetToken() token.Token {
+    if t.char == '\\' {
+        t.readChar()
+        text := string(t.char)
+        t.readChar()
+        return token.NewTextToken(text)
+    }
     if t.char == '@' {
         return token.NewTagToken(t.readTag())
     }
@@ -60,5 +66,5 @@ func (t *Tokenizer) readTag() string {
 // HELPERS
 func isText(char byte) bool {
     _, ok := token.Characters[char]
-    return !ok && char != '@'
+    return !ok && char != '@' && char != '\\'
 }

@@ -32,3 +32,8 @@ type Tag struct {
     Type TagType
     Content []Inline
 }
+
+type Comment struct {
+    Inline
+    Content string
+}
