@@ -63,6 +63,11 @@ Then, execute the binary code with the file as the first argument:
 /path/to/main <filename>.prox
 ```
 
+Also, you can generate the HTML file too with:
+```
+/path/to/main <filename>.prox --html
+```
+
 ## Full syntax
 - Alignment: `@center`, `@right`
 - Headings: `@h1`, `@h2`, `@h3`
@@ -72,6 +77,5 @@ Then, execute the binary code with the file as the first argument:
 
 ## TODOs
 - Implement more features
-- Have an --html flag to output the index.html instead of the PDF
 - Implement some formatting algorithm
 - Change the default style via CSS

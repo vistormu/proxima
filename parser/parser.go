@@ -70,6 +70,7 @@ func (p *Parser) addError(message string) {
 func (p *Parser) paragraphIsTerminated() bool {
     return p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.LINEBREAK) || 
     p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.EOF) ||
+    p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.HASH) ||
     p.currentTokenIs(token.EOF)
 }
 

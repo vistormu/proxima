@@ -15,7 +15,7 @@ const (
 )
 
 func main() {
-    if len(os.Args) != 2 {
+    if len(os.Args) != 2 && len(os.Args) != 3 {
         panic("Usage: proxima <filename>")
     }
 
@@ -69,9 +69,19 @@ func main() {
         panic(err)
     }
 
-    cmd = exec.Command("rm", "index.html")
-    err = cmd.Run()
-    if err != nil {
-        panic(err)
+    htmlFlag := false
+    for _, arg := range os.Args {
+        if arg == "--html" {
+            htmlFlag = true
+            break
+        }
+    }
+    
+    if !htmlFlag {
+        cmd = exec.Command("rm", "index.html")
+        err = cmd.Run()
+        if err != nil {
+            panic(err)
+        }
     }
 }
