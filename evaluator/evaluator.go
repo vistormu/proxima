@@ -1,9 +1,11 @@
 package evaluator
 
 import (
+    "fmt"
     "proxima/error"
     "proxima/ast"
     "proxima/builtins"
+    "proxima/object"
 )
 
 // TMP
@@ -83,7 +85,7 @@ func (e *Evaluator) Eval(node ast.Node) string {
     case *ast.Comment:
         return ""
     default:
-        e.addError("Unknown node type")
+        e.addError(fmt.Sprintf("unknown node type: %T", node))
         return ""
     }
 }
@@ -134,22 +136,26 @@ func (e *Evaluator) evalText(text *ast.Text) string {
 }
 
 func (e *Evaluator) evalTag(tag *ast.Tag) string {
-    var result string
-
     function, ok := builtins.Builtins[tag.Name]
     if !ok {
-        e.addError("Unknown tag")
-        return "??"
-    }
-    for _, inline := range tag.Arguments[0] {
-        result += e.Eval(inline)
+        e.addError(fmt.Sprintf("Unknown tag: %s", tag.Name))
+        return ""
     }
 
-    result = function(result, tag.Type)
-    if result == "" {
-        e.addError("Tag function returned empty string")
-        return "??"
+    var evaluatedArguments []string
+    for _, argument := range tag.Arguments {
+        var evaluatedArgument string
+        for _, inline := range argument {
+            evaluatedArgument += e.Eval(inline)
+        }
+        evaluatedArguments = append(evaluatedArguments, evaluatedArgument)
     }
 
-    return result
+    result := function(evaluatedArguments, tag.Type)
+    if result.Type() == object.ERROR_OBJ {
+        e.addError(result.Inspect())
+        return ""
+    }
+
+    return result.Inspect()
 }

@@ -3,6 +3,7 @@ package builtins
 import (
     "proxima/ast"
     "proxima/object"
+    "strconv"
 )
 
 type BuiltInFunction func(args []string, tagType ast.TagType) object.Object
@@ -163,26 +164,47 @@ func url(args []string, tagType ast.TagType) object.Object {
 }
 
 // Images
-func image(arg string, tagType ast.TagType) string {
-    result := ""
-    if tagType == ast.BRACKETED {
-        result = "<img src=\"" + arg + "\">"
+func image(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@image can only be used as a bracketed tag"}
     }
-    return result
+    if len(args) > 2 {
+        return &object.Error{Message: "@image can only have one or two arguments"}
+    }
+    var value string
+    if len(args) == 1 {
+        value = "<img src=\"" + args[0] + "\">"
+    } else {
+        width, err := strconv.ParseFloat(args[1], 8)
+        if err != nil {
+            return &object.Error{Message: "@image takes a number as its second argument"}
+        } else if width <= 0 || width > 1.0 {
+            return &object.Error{Message: "@image can only have a width between 0 and 1"}
+        } else {
+            // parse width as a string
+            widthString := strconv.FormatFloat(width * 720, 'f', -1, 64)
+            value = "<img src=\"" + args[0] + "\" width=\"" + widthString + "\">"
+        }
+    }
+    return &object.String{Value: value}
 }
 
 // Other
-func breakline(arg string, tagType ast.TagType) string {
-    result := ""
-    if tagType == ast.SELF_CLOSING {
-        result = "<br>"
+func breakline(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.SELF_CLOSING {
+        return &object.Error{Message: "@break can only be used as a self-closing tag"}
     }
-    return result
+    if len(args) != 0 {
+        return &object.Error{Message: "@break can't have any arguments"}
+    }
+    return &object.String{Value: "<br>"}
 }
-func line(arg string, tagType ast.TagType) string {
-    result := ""
-    if tagType == ast.SELF_CLOSING {
-        result = "<hr>"
+func line(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.SELF_CLOSING {
+        return &object.Error{Message: "@line can only be used as a self-closing tag"}
     }
-    return result
+    if len(args) != 0 {
+        return &object.Error{Message: "@line can't have any arguments"}
+    }
+    return &object.String{Value: "<hr>"}
 }
