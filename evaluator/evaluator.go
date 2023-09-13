@@ -141,7 +141,7 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
         e.addError("Unknown tag")
         return "??"
     }
-    for _, inline := range tag.Content {
+    for _, inline := range tag.Arguments[0] {
         result += e.Eval(inline)
     }
 

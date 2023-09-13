@@ -30,7 +30,7 @@ type Tag struct {
     Inline
     Name string
     Type TagType
-    Content []Inline
+    Arguments [][]Inline
 }
 
 type Comment struct {

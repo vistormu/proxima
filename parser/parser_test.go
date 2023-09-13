@@ -63,11 +63,15 @@ This is a paragraph of text.
         t.Fatalf("tag should be wrapping, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    if len(tag.Arguments) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
     }
 
-    text, ok := tag.Content[0].(*ast.Text)
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok := tag.Arguments[0][0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should contain a text inline")
     }
@@ -106,11 +110,15 @@ func TestBracketedTag(t *testing.T) {
         t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    if len(tag.Arguments) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
     }
 
-    text, ok := tag.Content[0].(*ast.Text)
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok := tag.Arguments[0][0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should contain a text inline")
     }
@@ -153,8 +161,8 @@ this is more text @rightarrow and more text
         t.Fatalf("tag should be self closing, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 0 {
-        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Content))
+    if len(tag.Arguments) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments))
     }
 
     paragraph = document.Paragraphs[1]
@@ -184,8 +192,8 @@ this is more text @rightarrow and more text
         t.Fatalf("tag should be self closing, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 0 {
-        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Content))
+    if len(tag.Arguments) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments))
     }
 
     text, ok = paragraph.Content[2].(*ast.Text)
@@ -290,11 +298,15 @@ func TestTextAndTags(t *testing.T) {
         t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    if len(tag.Arguments) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
     }
 
-    text, ok = tag.Content[0].(*ast.Text)
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok = tag.Arguments[0][0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should contain a text inline")
     }
@@ -325,11 +337,15 @@ func TestTextAndTags(t *testing.T) {
         t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
-    if len(tag.Content) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Content))
+    if len(tag.Arguments) != 1 {
+        t.Fatalf("tag should contain 1 argument, got %d", len(tag.Arguments))
     }
 
-    text, ok = tag.Content[0].(*ast.Text)
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok = tag.Arguments[0][0].(*ast.Text)
     if !ok {
         t.Fatalf("tag should contain a text inline")
     }
@@ -345,6 +361,66 @@ func TestTextAndTags(t *testing.T) {
 
     if text.Content != "." {
         t.Fatalf("text inline should contain '.', got '%s'", text.Content)
+    }
+}
+
+func TestMultiArgumentTag( t *testing.T) {
+    input := `@url{http://www.google.com}{Google}`
+    p := New(input)
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "url" {
+        t.Fatalf("tag should be named 'url', got '%s'", tag.Name)
+    }
+
+    if tag.Type != ast.BRACKETED {
+        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
+    }
+
+    if len(tag.Arguments) != 2 {
+        t.Fatalf("tag should contain 2 arguments, got %d", len(tag.Arguments))
+    }
+
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok := tag.Arguments[0][0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "http://www.google.com" {
+        t.Fatalf("text inline should contain 'http://www.google.com', got '%s'", text.Content)
+    }
+
+    if len(tag.Arguments[1]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[1]))
+    }
+
+    text, ok = tag.Arguments[1][0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "Google" {
+        t.Fatalf("text inline should contain 'Google', got '%s'", text.Content)
     }
 }
 

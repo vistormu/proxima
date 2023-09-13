@@ -129,13 +129,15 @@ func (p *Parser) parseWrappingTag() *ast.Tag {
         return tag
     }
 
+    var inlineExpressions []ast.Inline
     for !p.paragraphIsTerminated() {
         expression := p.parseInline()
         if expression != nil {
-            tag.Content = append(tag.Content, expression)
+            inlineExpressions = append(inlineExpressions, expression)
         }
         p.nextToken()
     }
+    tag.Arguments = append(tag.Arguments, inlineExpressions)
      
     return tag
 }
@@ -144,13 +146,24 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
     p.nextToken()
     p.nextToken()
 
+    counter := 0
+    var inlineExpressions []ast.Inline
     for !p.currentTokenIs(token.RBRACE) {
         expression := p.parseInline()
         if expression != nil {
-            tag.Content = append(tag.Content, expression)
+            inlineExpressions = append(inlineExpressions, expression)
         }
         p.nextToken()
+        
+        if p.peekTokenIs(token.LBRACE) {
+            tag.Arguments = append(tag.Arguments, inlineExpressions)
+            inlineExpressions = []ast.Inline{}
+            counter += 1
+            p.nextToken()
+            p.nextToken()
+        }
     }
+    tag.Arguments = append(tag.Arguments, inlineExpressions)
 
     return tag
 }
