@@ -6,7 +6,7 @@
     </a>
 </p>
 
-Proxima is a markup language written in pure Go that offers the simplicity of Markdown with the power of LaTeX. It transpiles into HTML, so it is also suitable for teh browser.
+Proxima is a markup language written in pure Go that offers the simplicity of Markdown with the power of LaTeX. It transpiles into HTML, so it is also suitable for the browser.
 
 > It is currently under development, so actually it is not even as powerful as Markdown ;).
 
@@ -17,10 +17,15 @@ Its syntax is very simple:
 @<tag>{<text>}
 ```
 
-- A tag can also wrap the text below until a double line break is encountered.
+- A tag can also wrap the text below until a double line break is encountered:
 ```
 @<tag>
 <text>
+```
+
+- There are also self-enclosing tags:
+```
+@<tag>
 ```
 
 Proxima also supports comments with the `#` character.
@@ -69,13 +74,14 @@ Also, you can generate the HTML file too with:
 ```
 
 ## Full syntax
-- Alignment: `@center`, `@right`
+- Alignment: `@center`, `@right`, `@left`
 - Headings: `@h1`, `@h2`, `@h3`
-- Text styles: `@bold`, `@italic`, `@uline`, `@striket`
-- Links: `@url`
-- TBI: `@ulist`, `@nlist`, `@email`, `@image`
+- Text styles: `@bold{<text>}`, `@italic{<text>}`, `@uline{<text>}`, `@striket{<text>}`
+- Links: `@url{<url>}{<alt text>}`
+- Images: `@image{<src>}{<width ratio>}`
+- Other: `@line`, `@break`
 
 ## TODOs
-- Implement more features
-- Implement some formatting algorithm
-- Change the default style via CSS
+- Change the default formatting by providing a CSS file.
+- Create custom tags
+- More features like numbered lists, unnumbered lists, verbatim...
