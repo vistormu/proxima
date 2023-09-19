@@ -84,4 +84,10 @@ func main() {
             panic(err)
         }
     }
+
+    cmd = exec.Command("open", filename + ".pdf")
+    err = cmd.Run()
+    if err != nil {
+        panic(err)
+    }
 }
