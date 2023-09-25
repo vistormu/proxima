@@ -1,8 +1,8 @@
 package main
 
 import (
+    "fmt"
     "io"
-    "io/ioutil"
     "os"
     "os/exec"
     "strings"
@@ -26,8 +26,9 @@ func main() {
         panic("File must have .prox extension")
     }
 
-    content, err := ioutil.ReadFile(filename + extension)
+    content, err := os.ReadFile(filename + extension)
     if err != nil {
+        fmt.Println("Error reading file")
         panic(err)
     }
 
@@ -51,21 +52,16 @@ func main() {
         return
     }
 
-    file, err := os.Create("index.html")
+    file, err := os.Create(filename + ".html")
     if err != nil {
+        fmt.Println("Error creating file")
         panic(err)
     }
     defer file.Close()
 
     _, err = file.WriteString(evaluated)
     if err != nil {
-        panic(err)
-    }
-
-    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "--enable-local-file-access", "index.html", filename + ".pdf"}
-    cmd := exec.Command(cmdPrompt[0], cmdPrompt[1:]...)
-    err = cmd.Run()
-    if err != nil {
+        fmt.Println("Error writing to file")
         panic(err)
     }
 
@@ -76,18 +72,24 @@ func main() {
             break
         }
     }
-    
-    if !htmlFlag {
-        cmd = exec.Command("rm", "index.html")
-        err = cmd.Run()
-        if err != nil {
-            panic(err)
-        }
+
+    if htmlFlag {
+        fmt.Println("HTML file generated")
+        return
     }
 
-    cmd = exec.Command("open", filename + ".pdf")
+    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "--enable-local-file-access", "index.html", filename + ".pdf"}
+    cmd := exec.Command(cmdPrompt[0], cmdPrompt[1:]...)
     err = cmd.Run()
     if err != nil {
+        fmt.Println("Error running wkhtmltopdf")
+        panic(err)
+    }
+
+    cmd = exec.Command("rm", "index.html")
+    err = cmd.Run()
+    if err != nil {
+        fmt.Println("Error removing index.html")
         panic(err)
     }
 }
