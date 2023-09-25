@@ -78,7 +78,7 @@ func main() {
         return
     }
 
-    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "--enable-local-file-access", "index.html", filename + ".pdf"}
+    cmdPrompt := []string{"wkhtmltopdf", "-R", "25mm", "-B", "25mm", "-L", "25mm", "-T", "25mm", "--enable-local-file-access", filename + ".html", filename + ".pdf"}
     cmd := exec.Command(cmdPrompt[0], cmdPrompt[1:]...)
     err = cmd.Run()
     if err != nil {
@@ -86,7 +86,7 @@ func main() {
         panic(err)
     }
 
-    cmd = exec.Command("rm", "index.html")
+    cmd = exec.Command("rm", filename + ".html")
     err = cmd.Run()
     if err != nil {
         fmt.Println("Error removing index.html")
