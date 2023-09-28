@@ -99,10 +99,11 @@ func createFunction(component *Component) ComponentFunction {
             if len(args) != component.NArgs {
                 return &object.Error{ Message: fmt.Sprintf("wrong number of arguments in %s. got=%d, want=%d", component.Name, len(args), component.NArgs) }
             }
+            value := component.Content
             for _, arg := range args {
-                component.Content = strings.Replace(component.Content, "@", arg, 1)
+                value = strings.Replace(value, "@", arg, 1)
             }
-            return &object.String{ Value: component.Content }
+            return &object.String{ Value: value }
         }
 
     case ast.WRAPPING:
@@ -110,10 +111,11 @@ func createFunction(component *Component) ComponentFunction {
             if len(args) != component.NArgs {
                 return &object.Error{ Message: fmt.Sprintf("wrong number of arguments in %s. got=%d, want=%d", component.Name, len(args), component.NArgs) }
             }
+            value := component.Content
             for _, arg := range args {
-                component.Content = strings.Replace(component.Content, "@", arg, 1)
+                value = strings.Replace(value, "@", arg, 1)
             }
-            return &object.String{ Value: component.Content }
+            return &object.String{ Value: value }
         }
     }
 
