@@ -56,13 +56,9 @@ The following `test.prox` file shows some basic usage.
 @h1
 This is a section title!
 
-@center
-This is centered text!
-
 This is a new paragraph!
 
-@right
-This is a paragraph flushed to the right and with @bold{some bold text}!
+This is a paragraph with @bold{some bold text}!
 ```
 
 Then, execute the binary code with the file as the first argument:
