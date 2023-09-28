@@ -1,4 +1,4 @@
-package builtins
+package components
 
 import (
     "proxima/ast"
@@ -6,14 +6,9 @@ import (
     "strconv"
 )
 
-type BuiltInFunction func(args []string, tagType ast.TagType) object.Object
+type ComponentFunction func(args []string, tagType ast.TagType) object.Object
 
-var Builtins = map[string]BuiltInFunction{
-    // Alignment
-    "center": center,
-    "left": left,
-    "right": right,
-
+var Builtins = map[string]ComponentFunction{
     // Headings
     "h1": h1,
     "h2": h2,
@@ -22,10 +17,12 @@ var Builtins = map[string]BuiltInFunction{
     // Text styles
     "bold": bold,
     "italic": italic,
-    "striket": strike,
+    "strike": strike,
     "uline": underline,
+    "mark": mark,
 
     // Lists
+    "list": list,
 
     // Links
     "url": url,
@@ -36,38 +33,11 @@ var Builtins = map[string]BuiltInFunction{
     // Other
     "break": breakline,
     "line": line,
-}
 
-// Alignment
-func center(args []string, tagType ast.TagType) object.Object {
-    if tagType != ast.WRAPPING {
-        return &object.Error{Message: "@center can only be used as a wrapping tag"}
-    }
-    if len(args) != 1 {
-        return &object.Error{Message: "@center can only have one argument"}
-    }
-    value := "<div class=\"paragraph\" id=\"center\">\n\t" + args[0] + "\n</div>\n"
-    return &object.String{Value: value}
-}
-func left(args []string, tagType ast.TagType) object.Object {
-    if tagType != ast.WRAPPING {
-        return &object.Error{Message: "@left can only be used as a wrapping tag"}
-    }
-    if len(args) != 1 {
-        return &object.Error{Message: "@left can only have one argument"}
-    }
-    value := "<div class=\"paragraph\" id=\"left\">\n\t" + args[0] + "\n</div>\n"
-    return &object.String{Value: value}
-}
-func right(args []string, tagType ast.TagType) object.Object {
-    if tagType != ast.WRAPPING {
-        return &object.Error{Message: "@right can only be used as a wrapping tag"}
-    }
-    if len(args) != 1 {
-        return &object.Error{Message: "@right can only have one argument"}
-    }
-    value := "<div class=\"paragraph\" id=\"right\">\n\t" + args[0] + "\n</div>\n"
-    return &object.String{Value: value}
+    //preamble
+    "style": style,
+    "script": script,
+    "title": title,
 }
 
 // Headings
@@ -78,7 +48,7 @@ func h1(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h1 can only have one argument"}
     }
-    value := "<div class=\"h1\">\n\t" + args[0] + "\n</div>\n"
+    value := "<h1>\n\t" + args[0] + "\n</h1>\n"
     return &object.String{Value: value}
 }
 func h2(args []string, tagType ast.TagType) object.Object {
@@ -88,7 +58,7 @@ func h2(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h2 can only have one argument"}
     }
-    value := "<div class=\"h2\">\n\t" + args[0] + "\n</div>\n"
+    value := "<h2>\n\t" + args[0] + "\n</h2>\n"
     return &object.String{Value: value}
 }
 func h3(args []string, tagType ast.TagType) object.Object {
@@ -98,7 +68,7 @@ func h3(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h3 can only have one argument"}
     }
-    value := "<div class=\"h3\">\n\t" + args[0] + "\n</div>\n"
+    value := "<h3>\n\t" + args[0] + "\n</h3>\n"
     return &object.String{Value: value}
 }
 
@@ -143,8 +113,32 @@ func underline(args []string, tagType ast.TagType) object.Object {
     value := "<u>" + args[0] + "</u>"
     return &object.String{Value: value}
 }
+func mark(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@mark can only be used as a bracketed tag"}
+    }
+    if len(args) != 1 {
+        return &object.Error{Message: "@mark can only have one argument"}
+    }
+    value := "<mark>" + args[0] + "</mark>"
+    return &object.String{Value: value}
+}
 
 // Lists
+func list(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@list can only be used as a bracketed tag"}
+    }
+    if len(args) < 1 {
+        return &object.Error{Message: "@list must have at least one argument"}
+    }
+    value := "<ul>\n"
+    for _, arg := range args {
+        value += "\t<li>" + arg + "</li>\n"
+    }
+    value += "</ul>\n"
+    return &object.String{Value: value}
+}
 
 // Links
 func url(args []string, tagType ast.TagType) object.Object {
@@ -197,7 +191,7 @@ func breakline(args []string, tagType ast.TagType) object.Object {
     if len(args) != 0 {
         return &object.Error{Message: "@break can't have any arguments"}
     }
-    return &object.String{Value: "<br>"}
+    return &object.String{Value: "<br>\n"}
 }
 func line(args []string, tagType ast.TagType) object.Object {
     if tagType != ast.SELF_CLOSING {
@@ -206,5 +200,37 @@ func line(args []string, tagType ast.TagType) object.Object {
     if len(args) != 0 {
         return &object.Error{Message: "@line can't have any arguments"}
     }
-    return &object.String{Value: "<hr>"}
+    return &object.String{Value: "<hr>\n"}
+}
+
+// Preamble
+func style(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@style can only be used as a bracketed tag"}
+    }
+    if len(args) != 1 {
+        return &object.Error{Message: "@style can only have one argument"}
+    }
+    value := "<link rel=\"stylesheet\" href=\"" + args[0] + "\">"
+    return &object.String{Value: value}
+}
+func script(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@script can only be used as a bracketed tag"}
+    }
+    if len(args) != 1 {
+        return &object.Error{Message: "@script can only have one argument"}
+    }
+    value := "<script src=\"" + args[0] + "\"></script>"
+    return &object.String{Value: value}
+}
+func title(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@title can only be used as a bracketed tag"}
+    }
+    if len(args) != 1 {
+        return &object.Error{Message: "@title can only have one argument"}
+    }
+    value := "<title>" + args[0] + "</title>"
+    return &object.String{Value: value}
 }

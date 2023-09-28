@@ -1,67 +1,13 @@
 package evaluator
 
 import (
-    "fmt"
-    "proxima/error"
-    "proxima/ast"
-    "proxima/builtins"
-    "proxima/object"
-)
-
-// TMP
-const (
-    preamble = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lora&family=Roboto&display=swap');
-        .paragraph {
-            font-family: "Lora", serif;
-            font-size: 12pt;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            text-indent: 12px;
-            text-align: justify;
-            line-height: 1.25;
-        }
-        .h1 {
-            margin-top: 32px;
-            margin-bottom: 12px;
-            font-size: 24px;
-            font-weight: bold;
-            font-family: "Roboto", sans-serif;
-        }
-        .h2 {
-            margin-top: 24px;
-            margin-bottom: 12px;
-            font-size: 20px;
-            font-weight: bold;
-            font-family: "Roboto", sans-serif;
-        }
-        .h3 {
-            margin-top: 20px;
-            margin-bottom: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            font-family: "Roboto", sans-serif;
-        }
-        #center {
-            text-align: center;
-        }
-        #right {
-            text-align: right;
-        }
-        #monospace {
-            font-family: monospace;
-        }
-    </style>
-</head>
-<body>
-    `
-    postamble = `</body>
-</html>
-`
+	"fmt"
+	"proxima/ast"
+	"proxima/components"
+	"proxima/error"
+	"proxima/object"
+	"strings"
+	// "strings"
 )
 
 type Evaluator struct {
@@ -106,8 +52,6 @@ func (e *Evaluator) evalDocument(document *ast.Document) string {
         result += e.Eval(paragraph)
     }
 
-    result = preamble + result + postamble
-
     return result
 }
 func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
@@ -124,11 +68,11 @@ func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
         result += e.Eval(inline)
     }
 
-    if isText || isBracketedTag {
-        result = "<div class=\"paragraph\">\n\t" + result + "\n</div>\n"
+    if (isText || isBracketedTag) && !strings.HasPrefix(result, "<") {
+        result = "<p>\n\t" + result + "\n</p>"
     }
 
-    return result
+    return result + "\n"
 }
 
 func (e *Evaluator) evalText(text *ast.Text) string {
@@ -136,9 +80,9 @@ func (e *Evaluator) evalText(text *ast.Text) string {
 }
 
 func (e *Evaluator) evalTag(tag *ast.Tag) string {
-    function, ok := builtins.Builtins[tag.Name]
-    if !ok {
-        e.addError(fmt.Sprintf("Unknown tag: %s", tag.Name))
+    function := getTagFuntion(tag.Name)
+    if function == nil {
+        e.addError("unknown tag: " + tag.Name)
         return ""
     }
 
@@ -158,4 +102,18 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
     }
 
     return result.Inspect()
+}
+
+func getTagFuntion(key string) components.ComponentFunction {
+    if function, ok := components.Builtins[key]; ok {
+        return function
+    }
+
+    if components.Components != nil {
+        if function, ok := components.Components[key]; ok {
+            return function
+        }
+    }
+
+    return nil
 }

@@ -1,0 +1,23 @@
+# This is an example on how to write a blog post
+@style{./style.css}
+
+@header
+
+<div class="content-wrapper">
+
+@h1
+This is the title of the blog post
+
+@line
+
+@subtitle
+Published @mark{month dayth year}. Last edit: @mark{month dayth year}.
+
+@spacer
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae nisl nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla vitae luctus enim. Nullam posuere lobortis placerat. Donec venenatis neque eu volutpat dignissim. Donec feugiat massa quis consectetur mollis. Aliquam et diam nec est convallis dignissim. Cras mollis turpis at elit placerat congue vitae mollis est. Sed eleifend nibh vestibulum, scelerisque velit at, iaculis massa.
+
+</div>
+
+@script{./scripts/themeToggle.js}
+

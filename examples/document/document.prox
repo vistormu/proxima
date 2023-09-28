@@ -1,0 +1,20 @@
+# This is a example of a simple document written in proxima
+@title{Example document}
+@style{./style.css}
+
+@h1
+Section
+
+@line
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae nisl nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla vitae luctus enim. Nullam posuere lobortis placerat. Donec venenatis neque eu volutpat dignissim. Donec feugiat massa quis consectetur mollis. Aliquam et diam nec est convallis dignissim. Cras mollis turpis at elit placerat congue vitae mollis est. Sed eleifend nibh vestibulum, scelerisque velit at, iaculis massa.
+
+@h2
+Subsection
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vitae nisl nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla vitae luctus enim. Nullam posuere lobortis placerat. Donec venenatis neque eu volutpat dignissim. Donec feugiat massa quis consectetur mollis. Aliquam et diam nec est convallis dignissim. Cras mollis turpis at elit placerat congue vitae mollis est. Sed eleifend nibh vestibulum, scelerisque velit at, iaculis massa.
+
+@h2
+Styles
+
+@bold{This is bold text} and this is @italic{italic text}, and @uline{underlined}...
