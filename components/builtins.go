@@ -26,6 +26,7 @@ var Builtins = map[string]ComponentFunction{
 
     // Links
     "url": url,
+    "email": email,
 
     // Images
     "image": image,
@@ -153,6 +154,21 @@ func url(args []string, tagType ast.TagType) object.Object {
         value = "<a href=\"" + args[0] + "\">" + args[0] + "</a>"
     } else {
         value = "<a href=\"" + args[0] + "\">" + args[1] + "</a>"
+    }
+    return &object.String{Value: value}
+}
+func email(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@email can only be used as a bracketed tag"}
+    }
+    if len(args) > 2 {
+        return &object.Error{Message: "@email can only have one or two arguments"}
+    }
+    var value string
+    if len(args) == 1 {
+        value = "<a href=\"mailto:" + args[0] + "\">" + args[0] + "</a>"
+    } else {
+        value = "<a href=\"mailto:" + args[0] + "\">" + args[1] + "</a>"
     }
     return &object.String{Value: value}
 }

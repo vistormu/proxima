@@ -35,6 +35,7 @@ func (p *Parser) Parse() *ast.Document {
         if len(paragraph.Content) > 0 {
             document.Paragraphs = append(document.Paragraphs, paragraph)
         }
+        // skips \n after paragraph
         p.nextToken()
     }
 
@@ -146,7 +147,6 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
     p.nextToken()
     p.nextToken()
 
-    counter := 0
     var inlineExpressions []ast.Inline
     for !p.currentTokenIs(token.RBRACE) {
         expression := p.parseInline()
@@ -155,10 +155,9 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
         }
         p.nextToken()
         
-        if p.peekTokenIs(token.LBRACE) {
+        if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
             tag.Arguments = append(tag.Arguments, inlineExpressions)
             inlineExpressions = []ast.Inline{}
-            counter += 1
             p.nextToken()
             p.nextToken()
         }

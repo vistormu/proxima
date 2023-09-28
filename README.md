@@ -101,10 +101,10 @@ you can use it in your proxima file like:
 @smalltext{so basically im very smol}
 ```
 
-## Full syntax
+## Implemented tags
 - Headings: `@h1`, `@h2`, `@h3`
 - Text styles: `@bold{<text>}`, `@italic{<text>}`, `@uline{<text>}`, `@strike{<text>}`. `@mark{<text>}`
-- Links: `@url{<url>}{<alt text>}`
+- Links: `@url{<url>}{<alt text>}`, `@email{<text>}{<alt text>}`
 - Images: `@image{<src>}{<width ratio>}`
 - External files: `@style{path/to/style.css}`, `@script{path/to/script.js}`
 - Other: `@line`, `@break`, `@title{<text>}`
