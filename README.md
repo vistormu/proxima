@@ -62,7 +62,7 @@ This is a paragraph with @bold{some bold text}!
 ```
 
 Then, execute the binary code with the file as the first argument:
-```
+```bash
 /path/to/main <filename>.prox
 ```
 
@@ -75,6 +75,21 @@ proxima() {
     fi
     ~/path/to/proxima/build/main $1
 }
+```
+
+In this way, now the usage would be
+```bash
+proxima generate <filename>.prox
+```
+
+If you have multiple `.prox` files in one dorectory, you can use:
+```bash
+/path/to/main all
+```
+
+or
+```bash
+proxima generate all
 ```
 
 ### Adding a style, script or title

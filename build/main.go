@@ -38,12 +38,31 @@ func dirExists(path string) bool {
 
 func main() {
     if len(os.Args) != 2 {
-        panic("Usage: proxima <filename>")
+        panic("Usage: proxima <file>/<all>")
     }
 
-    // <filename>.prox
-    filename := os.Args[1][:strings.LastIndex(os.Args[1], ".")]
-    extension := os.Args[1][strings.LastIndex(os.Args[1], "."):]
+    if os.Args[1] == "all" {
+        files, err := os.ReadDir("./")
+        if err != nil {
+            panic(err)
+        }
+
+        for _, file := range files {
+            if strings.HasSuffix(file.Name(), MAIN_EXT) {
+                generate(file.Name())
+            }
+        }
+    } else {
+        generate(os.Args[1])
+    }
+
+}
+
+func generate(filename string) {
+    // <name>.prox
+    splitFilename := strings.SplitN(filename, ".", 2)
+    name := splitFilename[0]
+    extension := "." + splitFilename[1]
     if extension != MAIN_EXT {
         panic("File must have .prox extension")
     }
@@ -54,7 +73,7 @@ func main() {
     }
 
     // read proxima file
-    content, err := os.ReadFile(filename + extension)
+    content, err := os.ReadFile(name + extension)
     if err != nil {
         fmt.Println("Error reading file")
         panic(err)
@@ -101,7 +120,7 @@ func main() {
 
     html += POST_HEAD + evaluated + POST_BODY
 
-    file, err := os.Create(filename + ".html")
+    file, err := os.Create(name + ".html")
     if err != nil {
         fmt.Println("Error creating file")
         panic(err)
@@ -114,5 +133,5 @@ func main() {
         panic(err)
     }
 
-    fmt.Println("HTML file generated")
+    fmt.Printf("Generated %s.html\n", name)
 }

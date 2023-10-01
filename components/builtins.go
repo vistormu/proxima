@@ -20,6 +20,7 @@ var Builtins = map[string]ComponentFunction{
     "strike": strike,
     "uline": underline,
     "mark": mark,
+    "code": code,
 
     // Lists
     "list": list,
@@ -122,6 +123,16 @@ func mark(args []string, tagType ast.TagType) object.Object {
         return &object.Error{Message: "@mark can only have one argument"}
     }
     value := "<mark>" + args[0] + "</mark>"
+    return &object.String{Value: value}
+}
+func code(args []string, tagType ast.TagType) object.Object {
+    if tagType != ast.BRACKETED {
+        return &object.Error{Message: "@code can only be used as a bracketed tag"}
+    }
+    if len(args) != 1 {
+        return &object.Error{Message: "@code can only have one argument"}
+    }
+    value := "<code>" + args[0] + "</code>"
     return &object.String{Value: value}
 }
 
