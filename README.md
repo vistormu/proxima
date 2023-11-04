@@ -15,7 +15,7 @@ Proxima has several advantages compared to writing plain HTML:
 
 ## Syntax
 
-The syntax is very simple, as there is only three special characters: `#` for comments, `\` for escaping a character, and `@` to define a tag. Moreover, there are three times of tags:
+The syntax is very simple, as there is only five special characters: `#` for comments, `\` for escaping a character,`{` for openning the arguments call, `}` for closing it, and `@` to define a tag. Moreover, there are three different types of tags:
 
 - A self-closing tag can have no arguments to offer a specific functionality:
 ```
