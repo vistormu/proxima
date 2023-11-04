@@ -7,7 +7,6 @@ import (
 	"proxima/error"
 	"proxima/object"
 	"strings"
-	// "strings"
 )
 
 type Evaluator struct {
@@ -28,8 +27,6 @@ func (e *Evaluator) Eval(node ast.Node) string {
         return e.evalText(node)
     case *ast.Tag:
         return e.evalTag(node)
-    case *ast.Comment:
-        return ""
     default:
         e.addError(fmt.Sprintf("unknown node type: %T", node))
         return ""

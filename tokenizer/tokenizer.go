@@ -19,6 +19,9 @@ func New(input string) *Tokenizer {
 }
 
 func (t *Tokenizer) GetToken() token.Token {
+    if t.char == '#' {
+        t.skipComment()
+    }
     if t.char == '\\' {
         t.readChar()
         text := string(t.char)
@@ -62,6 +65,11 @@ func (t *Tokenizer) readTag() string {
     }
     return t.input[start:t.position]
 } 
+func (t *Tokenizer) skipComment() {
+    for t.char != '\n' && t.char != 0 {
+        t.readChar()
+    }
+}
 
 // HELPERS
 func isText(char byte) bool {

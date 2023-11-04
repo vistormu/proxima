@@ -12,7 +12,6 @@ const (
     LINEBREAK
     LBRACE
     RBRACE
-    HASH
 )
 
 var TypeToString = map[TokenType]string{
@@ -25,7 +24,6 @@ var TypeToString = map[TokenType]string{
     LINEBREAK: "LINEBREAK",
     LBRACE: "LBRACE",
     RBRACE: "RBRACE",
-    HASH: "HASH",
 }
 
 type Token struct {
@@ -38,7 +36,6 @@ var Characters = map[byte]Token{
     '\n': {LINEBREAK, "\n"},
     '{': {LBRACE, "{"},
     '}': {RBRACE, "}"},
-    '#': {HASH, "#"},
 }
 
 func NewCharToken(char byte) Token {

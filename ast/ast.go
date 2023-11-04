@@ -32,8 +32,3 @@ type Tag struct {
     Type TagType
     Arguments [][]Inline
 }
-
-type Comment struct {
-    Inline
-    Content string
-}
