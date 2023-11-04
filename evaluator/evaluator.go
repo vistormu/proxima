@@ -102,14 +102,13 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
 }
 
 func getTagFuntion(key string) components.ComponentFunction {
-    if function, ok := components.Builtins[key]; ok {
-        return function
-    }
-
     if components.Components != nil {
         if function, ok := components.Components[key]; ok {
             return function
         }
+    }
+    if function, ok := components.Builtins[key]; ok {
+        return function
     }
 
     return nil
