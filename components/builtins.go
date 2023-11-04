@@ -4,6 +4,7 @@ import (
     "proxima/ast"
     "proxima/object"
     "strconv"
+    "strings"
 )
 
 type ComponentFunction func(args []string, tagType ast.TagType) object.Object
@@ -50,7 +51,9 @@ func h1(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h1 can only have one argument"}
     }
-    value := "<h1>\n\t" + args[0] + "\n</h1>\n"
+    anchor := strings.Replace(args[0], " ", "-", -1)
+    anchor = strings.ToLower(anchor)
+    value := "<h1 id=\"" + anchor + "\">\n\t" + args[0] + "\n</h1>\n"
     return &object.String{Value: value}
 }
 func h2(args []string, tagType ast.TagType) object.Object {
@@ -60,7 +63,9 @@ func h2(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h2 can only have one argument"}
     }
-    value := "<h2>\n\t" + args[0] + "\n</h2>\n"
+    anchor := strings.Replace(args[0], " ", "-", -1)
+    anchor = strings.ToLower(anchor)
+    value := "<h2 id=\"" + anchor + "\">\n\t" + args[0] + "\n</h2>\n"
     return &object.String{Value: value}
 }
 func h3(args []string, tagType ast.TagType) object.Object {
@@ -70,7 +75,9 @@ func h3(args []string, tagType ast.TagType) object.Object {
     if len(args) != 1 {
         return &object.Error{Message: "@h3 can only have one argument"}
     }
-    value := "<h3>\n\t" + args[0] + "\n</h3>\n"
+    anchor := strings.Replace(args[0], " ", "-", -1)
+    anchor = strings.ToLower(anchor)
+    value := "<h3 id=\"" + anchor + "\">\n\t" + args[0] + "\n</h3>\n"
     return &object.String{Value: value}
 }
 

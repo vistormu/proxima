@@ -121,7 +121,7 @@ func (p *Parser) parseTag() *ast.Tag {
 func (p *Parser) parseWrappingTag() *ast.Tag {
     tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.WRAPPING}
     p.nextToken()
-    
+
     if p.peekTokenIs(token.LINEBREAK) || p.peekTokenIs(token.EOF) {
         tag.Type = ast.SELF_CLOSING
         return tag

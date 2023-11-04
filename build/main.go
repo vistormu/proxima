@@ -5,6 +5,7 @@ import (
     "io"
     "os"
     "strings"
+    "path/filepath"
     "proxima/parser"
     "proxima/evaluator"
     "proxima/components"
@@ -36,21 +37,38 @@ func dirExists(path string) bool {
     return info.IsDir()
 }
 
+func processDirectory(dirPath string) error {
+    files, err := os.ReadDir(dirPath)
+    if err != nil {
+        return err
+    }
+
+    for _, file := range files {
+        fullPath := filepath.Join(dirPath, file.Name())
+        if file.IsDir() {
+            // If it's a directory, recurse into it
+            err := processDirectory(fullPath)
+            if err != nil {
+                return err // Propagate errors
+            }
+        } else if strings.HasSuffix(file.Name(), MAIN_EXT) {
+            // If it's a file with the correct extension, apply 'generate'
+            generate(fullPath)
+        }
+    }
+
+    return nil
+}
+
 func main() {
     if len(os.Args) != 2 {
         panic("Usage: proxima <file>/<all>")
     }
 
     if os.Args[1] == "all" {
-        files, err := os.ReadDir("./")
-        if err != nil {
-            panic(err)
-        }
-
-        for _, file := range files {
-            if strings.HasSuffix(file.Name(), MAIN_EXT) {
-                generate(file.Name())
-            }
+        error := processDirectory("./")
+        if error != nil {
+            panic(error)
         }
     } else {
         generate(os.Args[1])
