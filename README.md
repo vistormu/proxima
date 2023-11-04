@@ -1,6 +1,8 @@
+# Proxima: A Simple Templating Markup Language
+
 <p align="center">
     <a href="https://github.com/vistormu/adam_simulator">
-        <img src="/assets/proxima.svg">
+        <img src="/assets/proxima_logo.svg">
     </a>
 </p>
 
