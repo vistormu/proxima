@@ -17,25 +17,24 @@ Proxima has several advantages compared to writing plain HTML:
 
 ## Syntax
 
-The syntax is very simple, as there is only five special characters: 
+The syntax is very simple, consisting only of five special characters: 
 - `@` is used to define a tag.
 - `#` is used for comments.
-- `{` and '}' are used for enclosing arguments.
+- `{` and `}` are used for enclosing arguments.
 - `\` is used to escape a character.
 
-A tag can be used in three ways:
 
-- A tag with no arguments
-```
-@<tag>
-```
-
-- A tag can have as many arguments as needed:
+A tag can have as many arguments as needed,
 ```
 @<tag>{<arg1>}{<arg2>}
 ```
 
-- If the tag has only one argument, it can wrap the content until a double linebreak is encountered.
+or no arguments at all.
+```
+@<tag>
+```
+
+Moreover, if the tag has only one argument, it can wrap the content until a double linebreak is encountered.
 ```
 @<tag>
 <text>
