@@ -4,7 +4,6 @@ import (
     "fmt"
     "os"
     "strings"
-    "proxima/ast"
     "proxima/object"
 )
 
@@ -13,7 +12,6 @@ var Components map[string]ComponentFunction
 type Component struct {
     Name string
     Content string
-    TagType ast.TagType
     NArgs int
 }
 
@@ -29,8 +27,6 @@ func Init() {
     for i, file := range files {
         filename := file.Name()
         name := strings.Split(filename, ".")[0]
-        tagTypeString := strings.Split(name, "-")[1]
-        name = strings.Split(name, "-")[0]
         extension := strings.Split(filename, ".")[1]
 
         if extension != "html" {
@@ -44,19 +40,6 @@ func Init() {
             os.Exit(1)
         }
         
-        var tagType ast.TagType
-        switch tagTypeString {
-        case "s":
-            tagType = ast.SELF_CLOSING
-        case "b":
-            tagType = ast.BRACKETED
-        case "w":
-            tagType = ast.WRAPPING
-        default:
-            fmt.Println("Error: invalid tag type in component file name")
-            os.Exit(1)
-        }
-        
         nArgs := 0
         for _, char := range content {
             if char == '@' {
@@ -67,7 +50,6 @@ func Init() {
         componentList[i] = &Component{
             Name: name,
             Content: string(content),
-            TagType: tagType,
             NArgs: nArgs,
         }
     } 
@@ -85,29 +67,17 @@ func fillMap(componentList []*Component) {
 }
 
 func createFunction(component *Component) ComponentFunction {
-    switch component.TagType {
-    case ast.SELF_CLOSING:
-        return func(args []string, tagType ast.TagType) object.Object {
+    switch component.NArgs {
+    case 0:
+        return func(args []string) object.Object {
             if len(args) != component.NArgs {
                 return &object.Error{ Message: fmt.Sprintf("wrong number of arguments in %s. got=%d, want=%d", component.Name, len(args), component.NArgs) }
             }
             return &object.String{ Value: component.Content }
         }
 
-    case ast.BRACKETED:
-        return func(args []string, tagType ast.TagType) object.Object { 
-            if len(args) != component.NArgs {
-                return &object.Error{ Message: fmt.Sprintf("wrong number of arguments in %s. got=%d, want=%d", component.Name, len(args), component.NArgs) }
-            }
-            value := component.Content
-            for _, arg := range args {
-                value = strings.Replace(value, "@", arg, 1)
-            }
-            return &object.String{ Value: value }
-        }
-
-    case ast.WRAPPING:
-        return func(args []string, tagType ast.TagType) object.Object {
+    default:
+        return func(args []string) object.Object { 
             if len(args) != component.NArgs {
                 return &object.Error{ Message: fmt.Sprintf("wrong number of arguments in %s. got=%d, want=%d", component.Name, len(args), component.NArgs) }
             }
@@ -118,6 +88,4 @@ func createFunction(component *Component) ComponentFunction {
             return &object.String{ Value: value }
         }
     }
-
-    return nil
 }

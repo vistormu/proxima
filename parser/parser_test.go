@@ -59,10 +59,6 @@ This is a paragraph of text.
         t.Fatalf("tag should be named 'center', got '%s'", tag.Name)
     }
 
-    if tag.Type != ast.WRAPPING {
-        t.Fatalf("tag should be wrapping, got '%d'", tag.Type)
-    }
-
     if len(tag.Arguments) != 1 {
         t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
     }
@@ -104,10 +100,6 @@ func TestBracketedTag(t *testing.T) {
 
     if tag.Name != "bold" {
         t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
-    }
-
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
     if len(tag.Arguments) != 1 {
@@ -157,10 +149,6 @@ this is more text @rightarrow and more text
         t.Fatalf("tag should be named 'line', got '%s'", tag.Name)
     }
 
-    if tag.Type != ast.SELF_CLOSING {
-        t.Fatalf("tag should be self closing, got '%d'", tag.Type)
-    }
-
     if len(tag.Arguments) != 0 {
         t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments))
     }
@@ -186,10 +174,6 @@ this is more text @rightarrow and more text
 
     if tag.Name != "rightarrow" {
         t.Fatalf("tag should be named 'rightarrow', got '%s'", tag.Name)
-    }
-
-    if tag.Type != ast.SELF_CLOSING {
-        t.Fatalf("tag should be self closing, got '%d'", tag.Type)
     }
 
     if len(tag.Arguments) != 0 {
@@ -294,10 +278,6 @@ func TestTextAndTags(t *testing.T) {
         t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
     }
 
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
-    }
-
     if len(tag.Arguments) != 1 {
         t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
     }
@@ -331,10 +311,6 @@ func TestTextAndTags(t *testing.T) {
 
     if tag.Name != "italic" {
         t.Fatalf("tag should be named 'italic', got '%s'", tag.Name)
-    }
-
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
     if len(tag.Arguments) != 1 {
@@ -387,10 +363,6 @@ func TestMultiArgumentTag( t *testing.T) {
 
     if tag.Name != "url" {
         t.Fatalf("tag should be named 'url', got '%s'", tag.Name)
-    }
-
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
     if len(tag.Arguments) != 2 {
@@ -449,10 +421,6 @@ func TestNestedBracketing(t *testing.T) {
         t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
     }
 
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
-    }
-
     if len(tag.Arguments) != 1 {
         t.Fatalf("tag should contain 1 argument, got %d", len(tag.Arguments))
     }
@@ -477,10 +445,6 @@ func TestNestedBracketing(t *testing.T) {
 
     if tag.Name != "italic" {
         t.Fatalf("tag should be named 'italic', got '%s'", tag.Name)
-    }
-
-    if tag.Type != ast.BRACKETED {
-        t.Fatalf("tag should be bracketed, got '%d'", tag.Type)
     }
 
     if len(tag.Arguments) != 1 {

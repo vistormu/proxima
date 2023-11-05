@@ -57,7 +57,7 @@ func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
     _, isText := paragraph.Content[0].(*ast.Text)
     _, isTag := paragraph.Content[0].(*ast.Tag)
     isBracketedTag := false
-    if isTag && paragraph.Content[0].(*ast.Tag).Type == ast.BRACKETED {
+    if isTag {
         isBracketedTag = true
     }
 
@@ -92,7 +92,7 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
         evaluatedArguments = append(evaluatedArguments, evaluatedArgument)
     }
 
-    result := function(evaluatedArguments, tag.Type)
+    result := function(evaluatedArguments)
     if result.Type() == object.ERROR_OBJ {
         e.addError(result.Inspect())
         return ""

@@ -13,40 +13,36 @@ Proxima has several advantages compared to writing plain HTML:
 - You can build HTML components for faster typing.
 - You can embed inline HTML syntax
 
+> Important: Proxima is still under development, so there might be breaking changes between releases until v1.0.0 is out.
+
 ## Syntax
 
-The syntax is very simple, as there is only five special characters: `#` for comments, `\` for escaping a character,`{` for openning the arguments call, `}` for closing it, and `@` to define a tag. Moreover, there are three different types of tags:
+The syntax is very simple, as there is only five special characters: 
+- `@` is used to define a tag.
+- `#` is used for comments.
+- `{` and '}' are used for enclosing arguments.
+- `\` is used to escape a character.
 
-- A self-closing tag can have no arguments to offer a specific functionality:
+A tag can be used in three ways:
+
+- A tag with no arguments
 ```
 @<tag>
 ```
 
-- A bracketed tag can have as many arguments as needed:
+- A tag can have as many arguments as needed:
 ```
 @<tag>{<arg1>}{<arg2>}
 ```
 
-- A wrapping tag wraps the text below until a double line break is encountered:
+- If the tag has only one argument, it can wrap the content until a double linebreak is encountered.
 ```
 @<tag>
 <text>
 ```
 
 ## Installation
-
-The installation process is a bit quirky as there are still no official releases.
-
-First, [install Go](https://go.dev/dl/) if you already don't have it.
-
-Secondly, clone the repository:
-```
-git clone github.com/vistormu/proxima.git
-```
-Lastly, build the project with:
-```
-go build build/main.go
-```
+Download the binary for your operating system in the [Releases Page](https://github.com/vistormu/proxima/releases).
 
 ## Usage
 
@@ -75,7 +71,7 @@ proxima() {
         echo "Usage: proxima generate"
         return 1
     fi
-    ~/path/to/proxima/build/main $1
+    shift ~/proxima-linux-arm64 $@
 }
 ```
 
@@ -84,41 +80,43 @@ In this way, now the usage would be
 proxima generate <filename>.prox
 ```
 
-If you have multiple `.prox` files in one dorectory, you can use:
-```bash
-/path/to/main all
-```
-
-or
+If you have multiple `.prox` files in one directory, you can use:
 ```bash
 proxima generate all
 ```
 
 ### Adding a style, script or title
-if you want to add a style, script or title, place the respective tags at the beginning of the file. If you want a script to be added at the end of the body, place the tag at the end of the document.
+If you want to add a style, script or title, place the respective tags at the beginning of the file. If you want a script to be added at the end of the body, place the tag at the end of the document.
 
 ### Components Usage
-In order to create your own components, you must create a `components` dir. Inside that directory, there can only `.html` files with an especific name:
-- `<tag>-s.html` for self-closing tags.
-- `<tag>-b.html` for bracketed tags.
-- `<tag>-w.html` for wrapping tags.
-
-If this rules don't apply, the program will not compile.
-
-Inside a `<tag>-b.html` or `<tag>-w.html` every `@` inside the file will be replaced by the number of arguments in order.
-
-For example, if you create this component,
+In order to create your own components, you must create a `components` directory in the root of your project. Inside that directory, you can define your new components by creating a `.html` file with the name of your component. For example:
 ```
-# ./components/smalltext-b.html
+<!-- ./components/spacer.html -->
+
+<div style="heigh: 20px;"></div>
+```
+
+So now in your proxima file you can use
+```
+# ./index.prox
+
+@spacer
+```
+
+If you want to add arguments, every `@` symbol inside of the file will be replaces by the arguments in appearance order.
+```
+<!-- ./components/smol-text.html -->
 <div style="font-size: 10px;">@</div>
 ```
 
-you can use it in your proxima file like:
+And in your proxima file:
 ```
-@smalltext{so basically im very smol}
+@smol-text{so basically im very smol}
 ```
 
-## Implemented tags
+## Pre-implemented tags
+The basic HTML tags are already pre-implemented.
+
 - Headings: `@h1`, `@h2`, `@h3`
 - Text styles: `@bold{<text>}`, `@italic{<text>}`, `@uline{<text>}`, `@strike{<text>}`. `@mark{<text>}`
 - Links: `@url{<url>}{<alt text>}`, `@email{<text>}{<alt text>}`

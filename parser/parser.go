@@ -119,11 +119,10 @@ func (p *Parser) parseTag() *ast.Tag {
     }
 }
 func (p *Parser) parseWrappingTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.WRAPPING}
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
     p.nextToken()
 
     if p.peekTokenIs(token.LINEBREAK) || p.peekTokenIs(token.EOF) {
-        tag.Type = ast.SELF_CLOSING
         return tag
     }
 
@@ -140,7 +139,7 @@ func (p *Parser) parseWrappingTag() *ast.Tag {
     return tag
 }
 func (p *Parser) parseBracketedTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.BRACKETED}
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
     p.nextToken()
     p.nextToken()
 
@@ -164,5 +163,5 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
     return tag
 }
 func (p *Parser) parseSelfClosingTag() *ast.Tag {
-    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), Type: ast.SELF_CLOSING}
+    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
 }

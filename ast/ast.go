@@ -19,16 +19,8 @@ type Text struct {
     Content string
 }
 
-type TagType int
-const (
-    WRAPPING TagType = iota
-    BRACKETED
-    SELF_CLOSING
-)
-
 type Tag struct {
     Inline
     Name string
-    Type TagType
     Arguments [][]Inline
 }
