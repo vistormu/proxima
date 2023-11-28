@@ -60,7 +60,7 @@ This is a paragraph with @bold{some bold text}!
 
 Then, execute the binary code with the file as the first argument:
 ```bash
-/path/to/main <filename>.prox
+/path/to/bin <filename>.prox
 ```
 
 As a temporal solution for a terminal command, you can write the following function on your `~/.bashrc` or `~/.zshrc`:
