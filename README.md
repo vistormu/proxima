@@ -21,7 +21,7 @@ The syntax is very simple, consisting only of five special characters:
 
 ## Basic Usage
 
-### Components
+### HTML Components
 
 A proxima file can be written as an HTML file. However, you can create HTML components placing `.html` files under a `components` directory in the root of your project. For example:
 ```
@@ -58,6 +58,34 @@ If the tag has only one argument, it can wrap the content until a double linebre
 so basically
 im very smol
 ```
+
+### Python Components
+Components can also be written in Python for logic inclussion. The python file should be named after the component and the function must be called `function`.
+
+```
+# ./components/list.py
+
+def function(*items: tuple[str]) -> str:
+    value: str = "<ul>\n"
+    for item in items:
+        value += f"\t<li>{item}</li>\n"
+    value += "</ul>\n"
+
+    return value
+```
+
+```
+# ./index.prox
+
+@list{
+    One
+}{
+    Two
+}{
+    Three
+}
+```
+
 
 ### HTML file generation
 
