@@ -5,11 +5,11 @@ PROGRAM_NAME="proxima"
 # List of OS/architecture combinations to build
 PLATFORMS=("windows/amd64" "linux/amd64" "linux/arm64" "darwin/amd64" "darwin/arm64")
 
-# Ensure the go toolchain is installed and GOPATH/bin is in your PATH.
+DIST_DIR="../dist"
 
 # Cleanup previous builds
 echo "Cleaning up previous builds..."
-rm -f "$PROGRAM_NAME"-*
+rm -f "$DIST_DIR"/"$PROGRAM_NAME"-*
 
 # Build loop
 for PLATFORM in "${PLATFORMS[@]}"; do
@@ -25,7 +25,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
 
     # Build the binary for the platform
     echo "Building for $GOOS $GOARCH..."
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUTPUT_NAME" $PROGRAM_NAME.go
+    GOOS=$GOOS GOARCH=$GOARCH go build -o "$DIST_DIR"/"$OUTPUT_NAME" $PROGRAM_NAME.go
 
     # Check if build was successful
     if [ $? -ne 0 ]; then
