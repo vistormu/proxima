@@ -18,11 +18,12 @@ type Parser struct {
     currentLine int
 
     Errors []error.Error
+    File string
 }
 
 // PUBLIC
-func New(input string) *Parser {
-    p := &Parser{tokenizer: tokenizer.New(input), currentLine: 1}
+func New(input string, file string) *Parser {
+    p := &Parser{tokenizer: tokenizer.New(input), currentLine: 1, File: file}
     p.nextToken()
     p.nextToken()
     return p
@@ -35,8 +36,6 @@ func (p *Parser) Parse() *ast.Document {
         if len(paragraph.Content) > 0 {
             document.Paragraphs = append(document.Paragraphs, paragraph)
         }
-        // skips \n after paragraph
-        p.nextToken()
     }
 
     return document
@@ -64,14 +63,17 @@ func (p *Parser) addError(message string) {
         Stage: "Parser",
         Line: p.currentLine,
         Message: message,
+        File: p.File,
     })
 }
 
 // HELPERS
 func (p *Parser) paragraphIsTerminated() bool {
-    return p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.LINEBREAK) || 
-    p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.EOF) ||
-    p.currentTokenIs(token.EOF)
+    condition1 := p.currentTokenIs(token.DOUBLE_LINEBREAK)
+    condition2 := p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.EOF)
+    condition3 := p.currentTokenIs(token.EOF)
+
+    return condition1 || condition2 || condition3
 }
 
 // PARSE
@@ -83,9 +85,8 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
         if expression != nil {
             paragraph.Content = append(paragraph.Content, expression)
         }
-        if p.paragraphIsTerminated() {
-            break
-        }
+    }
+    if !p.currentTokenIs(token.EOF) {
         p.nextToken()
     }
 
@@ -94,7 +95,8 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
 
 func (p *Parser) parseInline() ast.Inline {
     switch p.currentToken.Type {
-    case token.LINEBREAK:
+    case token.LINEBREAK, token.DOUBLE_LINEBREAK:
+        p.nextToken()
         return nil
     case token.TEXT:
         return p.parseText()
@@ -106,62 +108,69 @@ func (p *Parser) parseInline() ast.Inline {
     }
 }
 func (p *Parser) parseText() *ast.Text {
-    return &ast.Text{Content: p.currentToken.Literal}
-}
-func (p *Parser) parseTag() *ast.Tag {
-    switch p.peekToken.Type {
-    case token.LINEBREAK:
-        return p.parseWrappingTag()
-    case token.LBRACE:
-        return p.parseBracketedTag()
-    default:
-        return p.parseSelfClosingTag()
-    }
-}
-func (p *Parser) parseWrappingTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
+    text := &ast.Text{Content: p.currentToken.Literal}
     p.nextToken()
 
-    if p.peekTokenIs(token.LINEBREAK) || p.peekTokenIs(token.EOF) {
+    for p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.TEXT) {
+        p.nextToken()
+        text.Content += "\n" + p.currentToken.Literal
+        p.nextToken()
+    }
+
+    return text
+}
+func (p *Parser) parseTag() *ast.Tag {
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
+    p.nextToken()
+
+    if p.paragraphIsTerminated() {
         return tag
     }
 
     var inlineExpressions []ast.Inline
-    for !p.paragraphIsTerminated() {
-        expression := p.parseInline()
-        if expression != nil {
-            inlineExpressions = append(inlineExpressions, expression)
-        }
-        p.nextToken()
-    }
-    tag.Arguments = append(tag.Arguments, inlineExpressions)
-     
-    return tag
-}
-func (p *Parser) parseBracketedTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
-    p.nextToken()
-    p.nextToken()
-
-    var inlineExpressions []ast.Inline
-    for !p.currentTokenIs(token.RBRACE) {
-        expression := p.parseInline()
-        if expression != nil {
-            inlineExpressions = append(inlineExpressions, expression)
-        }
+    if p.currentTokenIs(token.LBRACE) {
         p.nextToken()
         
-        if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
-            tag.Arguments = append(tag.Arguments, inlineExpressions)
-            inlineExpressions = []ast.Inline{}
-            p.nextToken()
-            p.nextToken()
-        }
-    }
-    tag.Arguments = append(tag.Arguments, inlineExpressions)
+        counter := 0
+        for !p.currentTokenIs(token.RBRACE) {
+            counter += 1
+            if counter > 100 {
+                p.addError("Right brace not found. Probably an unescaoed '#' char?")
+                return nil
+            }
 
+            expression := p.parseInline()
+            if expression != nil {
+                inlineExpressions = append(inlineExpressions, expression)
+            }
+            
+            if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
+                tag.Arguments = append(tag.Arguments, inlineExpressions)
+                inlineExpressions = []ast.Inline{}
+                p.nextToken()
+                p.nextToken()
+            }
+        }
+        tag.Arguments = append(tag.Arguments, inlineExpressions)
+
+        p.nextToken()
+
+        return tag
+    }
+
+    if p.currentTokenIs(token.LINEBREAK) { 
+        p.nextToken()
+
+        for !p.paragraphIsTerminated() {
+            expression := p.parseInline()
+            if expression != nil {
+                inlineExpressions = append(inlineExpressions, expression)
+            }
+        }
+        tag.Arguments = append(tag.Arguments, inlineExpressions)
+         
+        return tag
+    }
+    
     return tag
-}
-func (p *Parser) parseSelfClosingTag() *ast.Tag {
-    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
 }

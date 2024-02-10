@@ -11,11 +11,12 @@ import (
 
 type Evaluator struct {
     Errors []error.Error
+    File string
 }
 
 // PUBLIC
-func New() *Evaluator {
-    return &Evaluator{}
+func New(file string) *Evaluator {
+    return &Evaluator{File: file}
 }
 func (e *Evaluator) Eval(node ast.Node) string {
     switch node := node.(type) {
@@ -28,16 +29,18 @@ func (e *Evaluator) Eval(node ast.Node) string {
     case *ast.Tag:
         return e.evalTag(node)
     default:
-        e.addError(fmt.Sprintf("unknown node type: %T", node))
+        e.addError(fmt.Sprintf("unknown node type: %T", node), node.Line())
         return ""
     }
 }
 
 // ERRORS
-func (e *Evaluator) addError(msg string) {
+func (e *Evaluator) addError(msg string, line int) {
     e.Errors = append(e.Errors, error.Error{
         Stage: "evaluator",
         Message: msg,
+        Line: line,
+        File: e.File,
     })
 }
 
@@ -79,7 +82,7 @@ func (e *Evaluator) evalText(text *ast.Text) string {
 func (e *Evaluator) evalTag(tag *ast.Tag) string {
     function := getTagFuntion(tag.Name)
     if function == nil {
-        e.addError("unknown tag: " + tag.Name)
+        e.addError("unknown tag: " + tag.Name, tag.Line())
         return ""
     }
 
@@ -94,7 +97,7 @@ func (e *Evaluator) evalTag(tag *ast.Tag) string {
 
     result := function(evaluatedArguments)
     if result.Type() == object.ERROR_OBJ {
-        e.addError(result.Inspect())
+        e.addError(result.Inspect(), tag.Line())
         return ""
     }
 

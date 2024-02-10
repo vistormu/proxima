@@ -96,13 +96,11 @@ This is the third paragraph with @bold{bold text}.
     }{
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the first paragraph."},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
         {token.TAG, "@center"},
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the second paragraph."},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
         {token.TEXT, "This is the third paragraph with "},
         {token.TAG, "@bold"},
         {token.LBRACE, "{"},
@@ -127,7 +125,7 @@ This is the second paragraph.
 # This is a
 # Double line comment
 
-This is the third paragraph.
+This is the third paragraph. # with a comment
 `
     tests := []struct {
         expectedType token.TokenType
@@ -135,17 +133,13 @@ This is the third paragraph.
     }{
         {token.LINEBREAK, "\n"},
         {token.TEXT, "This is the first paragraph."},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
         {token.TEXT, "This is the second paragraph."},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
         {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.LINEBREAK, "\n"},
-        {token.TEXT, "This is the third paragraph."},
+        {token.DOUBLE_LINEBREAK, "\n\n"},
+        {token.TEXT, "This is the third paragraph. "},
         {token.LINEBREAK, "\n"},
         {token.EOF, ""},
     }
@@ -166,6 +160,27 @@ func TestEscacpeCharacter(t *testing.T) {
         {token.TEXT, "{"},
         {token.TEXT, " "},
         {token.TEXT, "}"},
+        {token.EOF, ""},
+    }
+
+    test(t, input, tests)
+}
+
+func TestEscacpeCharacterInTag(t *testing.T) {
+    input := `@url{\#project-structure}{Project Structure}`
+
+    tests := []struct {
+        expectedType token.TokenType
+        expectedContent string
+    }{
+        {token.TAG, "@url"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "#"},
+        {token.TEXT, "project-structure"},
+        {token.RBRACE, "}"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "Project Structure"},
+        {token.RBRACE, "}"},
         {token.EOF, ""},
     }
 

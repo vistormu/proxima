@@ -10,6 +10,7 @@ const (
     TEXT
 
     LINEBREAK
+    DOUBLE_LINEBREAK
     LBRACE
     RBRACE
 )
@@ -22,6 +23,7 @@ var TypeToString = map[TokenType]string{
     TEXT: "TEXT",
 
     LINEBREAK: "LINEBREAK",
+    DOUBLE_LINEBREAK: "DOUBLE_LINEBREAK",
     LBRACE: "LBRACE",
     RBRACE: "RBRACE",
 }
@@ -44,6 +46,9 @@ func NewCharToken(char byte) Token {
         return Token{ILLEGAL, string(char)}
     }
     return token
+}
+func NewTwoCharToken(char1, char2 byte) Token {
+    return Token{DOUBLE_LINEBREAK, "\n\n"} // WIP
 }
 func NewTagToken(tag string) Token {
     return Token{TAG, tag}

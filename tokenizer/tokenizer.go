@@ -34,6 +34,11 @@ func (t *Tokenizer) GetToken() token.Token {
     if isText(t.char) {
         return token.NewTextToken(t.readText())
     }
+    if t.char == '\n' && t.peekChar() == '\n' {
+        t.readChar()
+        t.readChar()
+        return token.NewTwoCharToken('\n', '\n')
+    }
 
     token := token.NewCharToken(t.char)
     t.readChar()
@@ -42,6 +47,12 @@ func (t *Tokenizer) GetToken() token.Token {
 }
 
 // PRIVATE
+func (t *Tokenizer) peekChar() byte {
+    if t.peekPosition >= len(t.input) {
+        return 0
+    }
+    return t.input[t.peekPosition]
+}
 func (t *Tokenizer) readChar() {
     if t.peekPosition >= len(t.input) {
         t.char = 0
@@ -74,5 +85,5 @@ func (t *Tokenizer) skipComment() {
 // HELPERS
 func isText(char byte) bool {
     _, ok := token.Characters[char]
-    return !ok && char != '@' && char != '\\'
+    return !ok && char != '@' && char != '\\' && char != '#'
 }
