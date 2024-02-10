@@ -5,10 +5,11 @@ import (
 )
 
 type Error struct {
+    File string
     Stage string
     Line int
     Message string
 }
 func (e *Error) String() string {
-    return fmt.Sprintf("%s in line %d. %s", e.Stage, e.Line, e.Message)
+    return fmt.Sprintf("\x1b[31m -> |%s| %s (line %d)\x1b[0m \n %s", e.Stage, e.File, e.Line, e.Message)
 }

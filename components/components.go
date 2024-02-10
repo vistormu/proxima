@@ -131,7 +131,7 @@ func createHTMLComponentFunction(component *Component) ComponentFunction {
 
 func createPythonComponentFunction(component *Component) ComponentFunction {
     return func(args []string) object.Object {
-        evaluated, err := executePythonFunction(component.Content, args)
+        evaluated, err := executePythonFunction(component.Content, component.Name, args)
         if err != nil {
             return &object.Error{ Message: err.Error() }
         }
@@ -139,7 +139,7 @@ func createPythonComponentFunction(component *Component) ComponentFunction {
     }
 }
 
-func executePythonFunction(userFunction string, args []string) (string, error) {
+func executePythonFunction(userFunction string, functionName string, args []string) (string, error) {
     nArgs := len(args)
     functionArgs := ""
     for i := 0; i < nArgs; i++ {
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     // Execute the command
     err := cmd.Run()
     if err != nil {
-        return "", fmt.Errorf("error: %v, stderr: %v", err, stderr.String())
+        return "", fmt.Errorf("Error executing python function %s\n %s", functionName, stderr.String())
     }
 
     return strings.TrimSpace(out.String()), nil

@@ -100,7 +100,7 @@ func generate(filename string) {
     out := os.Stdout
 
     // parse proxima file
-    p := parser.New(string(content))
+    p := parser.New(string(content), name + extension)
     document := p.Parse()
 
     if len(p.Errors) != 0 {
@@ -111,7 +111,7 @@ func generate(filename string) {
     }
 
     // evaluate proxima file
-    ev := evaluator.New()
+    ev := evaluator.New(name + extension)
     evaluated := ev.Eval(document)
     if len(ev.Errors) != 0 {
         for _, err := range ev.Errors {

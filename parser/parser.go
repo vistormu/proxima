@@ -18,11 +18,12 @@ type Parser struct {
     currentLine int
 
     Errors []error.Error
+    File string
 }
 
 // PUBLIC
-func New(input string) *Parser {
-    p := &Parser{tokenizer: tokenizer.New(input), currentLine: 1}
+func New(input string, file string) *Parser {
+    p := &Parser{tokenizer: tokenizer.New(input), currentLine: 1, File: file}
     p.nextToken()
     p.nextToken()
     return p
@@ -64,6 +65,7 @@ func (p *Parser) addError(message string) {
         Stage: "Parser",
         Line: p.currentLine,
         Message: message,
+        File: p.File,
     })
 }
 
@@ -119,7 +121,7 @@ func (p *Parser) parseTag() *ast.Tag {
     }
 }
 func (p *Parser) parseWrappingTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
     p.nextToken()
 
     if p.peekTokenIs(token.LINEBREAK) || p.peekTokenIs(token.EOF) {
@@ -139,7 +141,7 @@ func (p *Parser) parseWrappingTag() *ast.Tag {
     return tag
 }
 func (p *Parser) parseBracketedTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
+    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
     p.nextToken()
     p.nextToken()
 
@@ -163,5 +165,5 @@ func (p *Parser) parseBracketedTag() *ast.Tag {
     return tag
 }
 func (p *Parser) parseSelfClosingTag() *ast.Tag {
-    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@")}
+    return &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
 }
