@@ -165,3 +165,24 @@ func TestEscacpeCharacter(t *testing.T) {
 
     test(t, input, tests)
 }
+
+func TestEscacpeCharacterInTag(t *testing.T) {
+    input := `@url{\#project-structure}{Project Structure}`
+
+    tests := []struct {
+        expectedType token.TokenType
+        expectedContent string
+    }{
+        {token.TAG, "@url"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "#"},
+        {token.TEXT, "project-structure"},
+        {token.RBRACE, "}"},
+        {token.LBRACE, "{"},
+        {token.TEXT, "Project Structure"},
+        {token.RBRACE, "}"},
+        {token.EOF, ""},
+    }
+
+    test(t, input, tests)
+}
