@@ -125,6 +125,9 @@ func createHTMLComponentFunction(component *Component) ComponentFunction {
         for _, arg := range args {
             value = strings.Replace(value, "@", arg, 1)
         }
+        if value[len(value) - 1] == '\n' {
+            value = value[:len(value) - 1]
+        }
         return &object.String{ Value: value }
     }
 }
@@ -134,6 +137,9 @@ func createPythonComponentFunction(component *Component) ComponentFunction {
         evaluated, err := executePythonFunction(component.Content, component.Name, args)
         if err != nil {
             return &object.Error{ Message: err.Error() }
+        }
+        if evaluated[len(evaluated) - 1] == '\n' {
+            evaluated = evaluated[:len(evaluated) - 1]
         }
         return &object.String{ Value: evaluated }
     }
