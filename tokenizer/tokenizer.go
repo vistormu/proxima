@@ -24,6 +24,17 @@ func (t *Tokenizer) GetToken() token.Token {
     }
     if t.char == '\\' {
         t.readChar()
+        switch t.char {
+        case 'n':
+            t.readChar()
+            return token.NewTextToken("<br>")
+        case '<':
+            t.readChar()
+            return token.NewTextToken("&lt;")
+        case '>':
+            t.readChar()
+            return token.NewTextToken("&gt;")
+        }
         text := string(t.char)
         t.readChar()
         return token.NewTextToken(text)

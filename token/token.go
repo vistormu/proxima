@@ -24,6 +24,7 @@ var TypeToString = map[TokenType]string{
 
     LINEBREAK: "LINEBREAK",
     DOUBLE_LINEBREAK: "DOUBLE_LINEBREAK",
+
     LBRACE: "LBRACE",
     RBRACE: "RBRACE",
 }
