@@ -27,6 +27,11 @@ const (
 `
 )
 
+func exitOnError(msg string) {
+    fmt.Println("\x1b[31m -> |build| " + msg + "\x1b[0m")
+    os.Exit(1)
+}
+
 func dirExists(path string) bool {
     info, err := os.Stat(path)
     if err != nil {
@@ -37,64 +42,95 @@ func dirExists(path string) bool {
     return info.IsDir()
 }
 
-func processDirectory(dirPath string) error {
-    files, err := os.ReadDir(dirPath)
-    if err != nil {
-        return err
-    }
-
-    for _, file := range files {
-        fullPath := filepath.Join(dirPath, file.Name())
-        if file.IsDir() {
-            // If it's a directory, recurse into it
-            err := processDirectory(fullPath)
-            if err != nil {
-                return err // Propagate errors
-            }
-        } else if strings.HasSuffix(file.Name(), MAIN_EXT) {
-            // If it's a file with the correct extension, apply 'generate'
-            generate(fullPath)
+func getAllFiles(dirPath string) []string {
+    files := []string{}
+    err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
         }
+        if !info.IsDir() && strings.HasSuffix(info.Name(), MAIN_EXT) {
+            files = append(files, path)
+        }
+        return nil
+    })
+    if err != nil {
+        exitOnError(err.Error())
     }
-
-    return nil
+    return files
 }
 
 func main() {
-    if len(os.Args) != 2 {
-        panic("Usage: proxima <file>/<all>")
-    }
+    args := os.Args[1:]
 
-    if os.Args[1] == "all" {
-        error := processDirectory("./")
-        if error != nil {
-            panic(error)
+    // flags
+    var inputFiles []string
+    var outputFilename string
+    var componentsPath string
+
+    for i, arg := range args {
+        if arg == "-o" && i + 1 < len(args) {
+            outputFilename = args[i + 1]
+            args = append(args[:i], args[i + 2:]...)
+            break
         }
-    } else {
-        generate(os.Args[1])
     }
 
+    for i, arg := range args {
+        if arg == "-c" && i + 1 < len(args) {
+            componentsPath = args[i + 1]
+            args = append(args[:i], args[i + 2:]...)
+            break
+        }
+    }
+    inputFiles = args
+    
+    // input files
+    if len(inputFiles) == 0 {
+        exitOnError("usage: proxima <filename>.prox or proxima all to process all .prox files")
+    }
+    if inputFiles[0] == "all" {
+        inputFiles = getAllFiles("./")
+    }
+
+    // output flag
+    if outputFilename != "" && !strings.HasSuffix(outputFilename, ".html") {
+        exitOnError("output file must have .html extension")
+    }
+    if outputFilename != "" && len(inputFiles) > 1 {
+        exitOnError("output file flag can only be used with one input file")
+    }
+
+    // components flag
+    if componentsPath != "" && !dirExists(componentsPath) {
+        exitOnError("components directory does not exist")
+    }
+
+    // generate html files
+    for _, file := range inputFiles {
+        generate(file, outputFilename, componentsPath)
+    }
 }
 
-func generate(filename string) {
-    // <name>.prox
+func generate(filename string, outputFilename string, componentsPath string) {
+    if !strings.HasSuffix(filename, MAIN_EXT) {
+        exitOnError(fmt.Sprintf("file %s is not a .prox file", filename))
+    }
     splitFilename := strings.SplitN(filename, ".", 2)
     name := splitFilename[0]
     extension := "." + splitFilename[1]
-    if extension != MAIN_EXT {
-        panic("File must have .prox extension")
-    }
 
     // check if components directory exists
-    if dirExists("./components") {
-        components.Init()
+    if componentsPath == "" {
+        componentsPath = "./components"
+    }
+    if dirExists(componentsPath) {
+        components.Init(componentsPath)
     }
 
     // read proxima file
     content, err := os.ReadFile(name + extension)
     if err != nil {
-        fmt.Println("Error reading file")
-        panic(err)
+        exitOnError(err.Error())
     }
 
     out := os.Stdout
@@ -137,19 +173,25 @@ func generate(filename string) {
     }
 
     html += POST_HEAD + evaluated + POST_BODY
+    
+    var output string
+    if outputFilename != "" {
+        output = outputFilename
+    } else {
+        output = name + ".html"
+    }
 
-    file, err := os.Create(name + ".html")
+    file, err := os.Create(output)
     if err != nil {
-        fmt.Println("Error creating file")
-        panic(err)
+        exitOnError(err.Error())
     }
     defer file.Close()
 
     _, err = file.WriteString(html)
     if err != nil {
-        fmt.Println("Error writing to file")
-        panic(err)
+        exitOnError(err.Error())
     }
-
-    fmt.Printf("Generated %s.html\n", name)
+    
+    msg := "\x1b[32m -> Generated " + output + "\x1b[0m"
+    fmt.Println(msg)
 }
