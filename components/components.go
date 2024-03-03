@@ -20,8 +20,14 @@ type Component struct {
 }
 
 
-func Init() {
-    componentList := getComponents("./components/")
+func Init(dir string) {
+    var componentsDir string
+    if strings.HasSuffix(dir, "/") {
+        componentsDir = dir
+    } else {
+        componentsDir = dir + "/"
+    }
+    componentList := getComponents(componentsDir)
 
     Components = make(map[string]ComponentFunction)
     for _, component := range componentList {
