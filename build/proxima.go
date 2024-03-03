@@ -62,13 +62,17 @@ func processDirectory(dirPath string) error {
 
 func main() {
     if len(os.Args) != 2 {
-        panic("Usage: proxima <file>/<all>")
+        msg := "\x1b[31m -> usage: proxima <file>/<all>\x1b[0m"
+        fmt.Println(msg)
+        os.Exit(1)
     }
 
     if os.Args[1] == "all" {
         error := processDirectory("./")
         if error != nil {
-            panic(error)
+            msg := "\x1b[31m -> error: " + error.Error() + "\x1b[0m"
+            fmt.Println(msg)
+            os.Exit(1)
         }
     } else {
         generate(os.Args[1])
@@ -82,7 +86,9 @@ func generate(filename string) {
     name := splitFilename[0]
     extension := "." + splitFilename[1]
     if extension != MAIN_EXT {
-        panic("File must have .prox extension")
+        msg := "\x1b[31m -> error: File must have .prox extension\x1b[0m"
+        fmt.Println(msg)
+        os.Exit(1)
     }
 
     // check if components directory exists
@@ -93,8 +99,9 @@ func generate(filename string) {
     // read proxima file
     content, err := os.ReadFile(name + extension)
     if err != nil {
-        fmt.Println("Error reading file")
-        panic(err)
+        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
+        fmt.Println(msg)
+        os.Exit(1)
     }
 
     out := os.Stdout
@@ -140,16 +147,19 @@ func generate(filename string) {
 
     file, err := os.Create(name + ".html")
     if err != nil {
-        fmt.Println("Error creating file")
-        panic(err)
+        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
+        fmt.Println(msg)
+        os.Exit(1)
     }
     defer file.Close()
 
     _, err = file.WriteString(html)
     if err != nil {
-        fmt.Println("Error writing to file")
-        panic(err)
+        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
+        fmt.Println(msg)
+        os.Exit(1)
     }
-
-    fmt.Printf("Generated %s.html\n", name)
+    
+    msg := "\x1b[32m -> Generated " + name + ".html\x1b[0m"
+    fmt.Println(msg)
 }
