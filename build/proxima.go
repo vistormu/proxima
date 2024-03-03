@@ -27,6 +27,11 @@ const (
 `
 )
 
+func exitOnError(msg string) {
+    fmt.Println("\x1b[31m -> |build| " + msg + "\x1b[0m")
+    os.Exit(1)
+}
+
 func dirExists(path string) bool {
     info, err := os.Stat(path)
     if err != nil {
@@ -62,17 +67,13 @@ func processDirectory(dirPath string) error {
 
 func main() {
     if len(os.Args) != 2 {
-        msg := "\x1b[31m -> usage: proxima <file>/<all>\x1b[0m"
-        fmt.Println(msg)
-        os.Exit(1)
+        exitOnError("usage: proxima <filename>.prox or proxima all to process all .prox files")
     }
 
     if os.Args[1] == "all" {
         error := processDirectory("./")
         if error != nil {
-            msg := "\x1b[31m -> error: " + error.Error() + "\x1b[0m"
-            fmt.Println(msg)
-            os.Exit(1)
+            exitOnError("error.Error()")
         }
     } else {
         generate(os.Args[1])
@@ -86,9 +87,7 @@ func generate(filename string) {
     name := splitFilename[0]
     extension := "." + splitFilename[1]
     if extension != MAIN_EXT {
-        msg := "\x1b[31m -> error: File must have .prox extension\x1b[0m"
-        fmt.Println(msg)
-        os.Exit(1)
+        exitOnError("file must have .prox extension")
     }
 
     // check if components directory exists
@@ -99,9 +98,7 @@ func generate(filename string) {
     // read proxima file
     content, err := os.ReadFile(name + extension)
     if err != nil {
-        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
-        fmt.Println(msg)
-        os.Exit(1)
+        exitOnError(err.Error())
     }
 
     out := os.Stdout
@@ -147,17 +144,13 @@ func generate(filename string) {
 
     file, err := os.Create(name + ".html")
     if err != nil {
-        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
-        fmt.Println(msg)
-        os.Exit(1)
+        exitOnError(err.Error())
     }
     defer file.Close()
 
     _, err = file.WriteString(html)
     if err != nil {
-        msg := "\x1b[31m -> error: " + err.Error() + "\x1b[0m"
-        fmt.Println(msg)
-        os.Exit(1)
+        exitOnError(err.Error())
     }
     
     msg := "\x1b[32m -> Generated " + name + ".html\x1b[0m"
