@@ -17,6 +17,8 @@ type Parser struct {
 
     currentLine int
 
+    argumentsCount int
+
     Errors []error.Error
     File string
 }
@@ -90,12 +92,21 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
         p.nextToken()
     }
 
+    if p.argumentsCount != 0 {
+        p.addError(fmt.Sprintf("unmatched braces"))
+    }
+
     return paragraph
 }
 
 func (p *Parser) parseInline() ast.Inline {
     switch p.currentToken.Type {
-    case token.LINEBREAK, token.DOUBLE_LINEBREAK:
+    case token.LINEBREAK:
+        p.currentLine += 1
+        p.nextToken()
+        return nil
+    case token.DOUBLE_LINEBREAK:
+        p.currentLine += 2
         p.nextToken()
         return nil
     case token.TEXT:
@@ -129,14 +140,31 @@ func (p *Parser) parseTag() *ast.Tag {
 
     var inlineExpressions []ast.Inline
     if p.currentTokenIs(token.LBRACE) {
+        p.argumentsCount += 1
         p.nextToken()
+
+        // check for empty argument
+        if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
+            tag.Arguments = append(tag.Arguments, []ast.Inline{})
+            p.nextToken()
+            p.nextToken()
+        }
+        // check for double linebreak
+        if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
+            p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
+        }
         
-        counter := 0
-        for !p.currentTokenIs(token.RBRACE) {
-            counter += 1
-            if counter > 100 {
-                p.addError("Right brace not found. Probably an unescaoed '#' char?")
-                return nil
+        for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
+            // check for empty argument
+            if p.currentTokenIs(token.LBRACE) && p.peekTokenIs(token.RBRACE) {
+                tag.Arguments = append(tag.Arguments, []ast.Inline{})
+                p.nextToken()
+                p.nextToken()
+                continue
+            }
+            // check for double linebreak
+            if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
+                p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
             }
 
             expression := p.parseInline()
@@ -150,6 +178,9 @@ func (p *Parser) parseTag() *ast.Tag {
                 p.nextToken()
                 p.nextToken()
             }
+        }
+        if p.currentTokenIs(token.RBRACE) {
+            p.argumentsCount -= 1
         }
         tag.Arguments = append(tag.Arguments, inlineExpressions)
 

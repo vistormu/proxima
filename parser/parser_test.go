@@ -494,6 +494,40 @@ This is the same paragraph of text.
     }
 }
 
+func TestEmptyArgument(t *testing.T) {
+    input := `@bold{}`
+    p := New(input, "test")
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "bold" {
+        t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
+    }
+
+    if len(tag.Arguments) != 1 {
+        t.Fatalf("tag should contain 1 argument, got %d", len(tag.Arguments))
+    }
+
+    if len(tag.Arguments[0]) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments[0]))
+    }
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
     errors := p.Errors
 
