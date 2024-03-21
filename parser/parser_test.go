@@ -31,52 +31,6 @@ func TestText(t *testing.T) {
     }
 }
 
-func TestWrappingTag(t *testing.T) {
-    input := `
-@center
-This is a paragraph of text.
-`
-    p := New(input, "test")
-    document := p.Parse()
-
-    checkParserErrors(t, p)
-
-    if len(document.Paragraphs) != 1 {
-        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
-    }
-
-    paragraph := document.Paragraphs[0]
-    if len(paragraph.Content) != 1 {
-        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
-    }
-
-    tag, ok := paragraph.Content[0].(*ast.Tag)
-    if !ok {
-        t.Fatalf("paragraph should contain a tag inline")
-    }
-
-    if tag.Name != "center" {
-        t.Fatalf("tag should be named 'center', got '%s'", tag.Name)
-    }
-
-    if len(tag.Arguments) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments))
-    }
-
-    if len(tag.Arguments[0]) != 1 {
-        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
-    }
-
-    text, ok := tag.Arguments[0][0].(*ast.Text)
-    if !ok {
-        t.Fatalf("tag should contain a text inline")
-    }
-
-    if text.Content != "This is a paragraph of text." {
-        t.Fatalf("text inline should contain 'This is a paragraph of text.', got '%s'", text.Content)
-    }
-}
-
 func TestBracketedTag(t *testing.T) {
     input := `@bold{This is a paragraph of text.}`
     p := New(input, "test")
@@ -525,6 +479,67 @@ func TestEmptyArgument(t *testing.T) {
 
     if len(tag.Arguments[0]) != 0 {
         t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments[0]))
+    }
+}
+
+func TestMultipleClosedArguments(t *testing.T) {
+    input := `@bold{first}{}{third}`
+
+    p := New(input, "test")
+    document := p.Parse()
+
+    checkParserErrors(t, p)
+
+    if len(document.Paragraphs) != 1 {
+        t.Fatalf("document should contain 1 paragraph, got %d", len(document.Paragraphs))
+    }
+
+    paragraph := document.Paragraphs[0]
+    if len(paragraph.Content) != 1 {
+        t.Fatalf("paragraph should contain 1 inline, got %d", len(paragraph.Content))
+    }
+
+    tag, ok := paragraph.Content[0].(*ast.Tag)
+    if !ok {
+        t.Fatalf("paragraph should contain a tag inline")
+    }
+
+    if tag.Name != "bold" {
+        t.Fatalf("tag should be named 'bold', got '%s'", tag.Name)
+    }
+
+    if len(tag.Arguments) != 3 {
+        t.Fatalf("tag should contain 3 arguments, got %d", len(tag.Arguments))
+    }
+
+    if len(tag.Arguments[0]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[0]))
+    }
+
+    text, ok := tag.Arguments[0][0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "first" {
+        t.Fatalf("text inline should contain 'first', got '%s'", text.Content)
+    }
+
+    if len(tag.Arguments[1]) != 0 {
+        t.Fatalf("tag should contain 0 inlines, got %d", len(tag.Arguments[1]))
+    }
+
+    if len(tag.Arguments[2]) != 1 {
+        t.Fatalf("tag should contain 1 inline, got %d", len(tag.Arguments[2]))
+    }
+
+    text, ok = tag.Arguments[2][0].(*ast.Text)
+    if !ok {
+        t.Fatalf("tag should contain a text inline")
+    }
+
+    if text.Content != "third" {
+        t.Fatalf("text inline should contain 'third', got '%s'", text.Content)
     }
 }
 

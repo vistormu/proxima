@@ -17,8 +17,6 @@ type Parser struct {
 
     currentLine int
 
-    argumentsCount int
-
     Errors []error.Error
     File string
 }
@@ -92,10 +90,6 @@ func (p *Parser) parseParagraph() *ast.Paragraph {
         p.nextToken()
     }
 
-    if p.argumentsCount != 0 {
-        p.addError(fmt.Sprintf("unmatched braces"))
-    }
-
     return paragraph
 }
 
@@ -115,6 +109,7 @@ func (p *Parser) parseInline() ast.Inline {
         return p.parseTag()
     default:
         p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
+        p.nextToken()
         return nil
     }
 }
@@ -125,6 +120,7 @@ func (p *Parser) parseText() *ast.Text {
     for p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.TEXT) {
         p.nextToken()
         text.Content += "\n" + p.currentToken.Literal
+        p.currentLine += 1
         p.nextToken()
     }
 
@@ -134,74 +130,35 @@ func (p *Parser) parseTag() *ast.Tag {
     tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
     p.nextToken()
 
-    if p.paragraphIsTerminated() {
+    if p.paragraphIsTerminated() || !p.currentTokenIs(token.LBRACE) {
         return tag
     }
 
     var inlineExpressions []ast.Inline
-    if p.currentTokenIs(token.LBRACE) {
-        p.argumentsCount += 1
-        p.nextToken()
+    p.nextToken()
 
-        // check for empty argument
+    for !p.paragraphIsTerminated() {
+        if p.currentTokenIs(token.RBRACE) && !p.peekTokenIs(token.LBRACE) {
+            tag.Arguments = append(tag.Arguments, inlineExpressions)
+            p.nextToken()
+
+            return tag
+        }
+
         if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
-            tag.Arguments = append(tag.Arguments, []ast.Inline{})
+            tag.Arguments = append(tag.Arguments, inlineExpressions)
+            inlineExpressions = []ast.Inline{}
             p.nextToken()
             p.nextToken()
+            continue
         }
-        // check for double linebreak
-        if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
-            p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
+
+        expression := p.parseInline()
+        if expression != nil {
+            inlineExpressions = append(inlineExpressions, expression)
         }
-        
-        for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
-            // check for empty argument
-            if p.currentTokenIs(token.LBRACE) && p.peekTokenIs(token.RBRACE) {
-                tag.Arguments = append(tag.Arguments, []ast.Inline{})
-                p.nextToken()
-                p.nextToken()
-                continue
-            }
-            // check for double linebreak
-            if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
-                p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
-            }
-
-            expression := p.parseInline()
-            if expression != nil {
-                inlineExpressions = append(inlineExpressions, expression)
-            }
-            
-            if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
-                tag.Arguments = append(tag.Arguments, inlineExpressions)
-                inlineExpressions = []ast.Inline{}
-                p.nextToken()
-                p.nextToken()
-            }
-        }
-        if p.currentTokenIs(token.RBRACE) {
-            p.argumentsCount -= 1
-        }
-        tag.Arguments = append(tag.Arguments, inlineExpressions)
-
-        p.nextToken()
-
-        return tag
-    }
-
-    if p.currentTokenIs(token.LINEBREAK) { 
-        p.nextToken()
-
-        for !p.paragraphIsTerminated() {
-            expression := p.parseInline()
-            if expression != nil {
-                inlineExpressions = append(inlineExpressions, expression)
-            }
-        }
-        tag.Arguments = append(tag.Arguments, inlineExpressions)
-         
-        return tag
     }
     
-    return tag
+    p.addError("Tag is missing closing brace")
+    return nil
 }
