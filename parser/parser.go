@@ -114,7 +114,7 @@ func (p *Parser) parseInline() ast.Inline {
     case token.TAG:
         return p.parseTag()
     default:
-        p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
+        p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
         return nil
     }
 }
@@ -151,7 +151,7 @@ func (p *Parser) parseTag() *ast.Tag {
         }
         // check for double linebreak
         if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
-            p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
+            p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
         }
         
         for !p.currentTokenIs(token.RBRACE) && !p.currentTokenIs(token.EOF) {
@@ -164,7 +164,7 @@ func (p *Parser) parseTag() *ast.Tag {
             }
             // check for double linebreak
             if p.currentTokenIs(token.DOUBLE_LINEBREAK) {
-                p.addError(fmt.Sprintf("Unexpected token: %s", token.TypeToString[p.currentToken.Type]))
+                p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
             }
 
             expression := p.parseInline()

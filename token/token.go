@@ -1,33 +1,18 @@
 package token
 
-type TokenType int
-
+type TokenType string
 const (
-    ILLEGAL TokenType = iota
-    EOF
+    ILLEGAL TokenType = "ILLEGAL"
+    EOF = "EOF"
 
-    TAG
-    TEXT
+    TAG = "TAG"
+    TEXT = "TEXT"
 
-    LINEBREAK
-    DOUBLE_LINEBREAK
-    LBRACE
-    RBRACE
+    LINEBREAK = "LINEBREAK"
+    DOUBLE_LINEBREAK = "DOUBLE_LINEBREAK"
+    LBRACE = "LBRACE"
+    RBRACE = "RBRACE"
 )
-
-var TypeToString = map[TokenType]string{
-    ILLEGAL: "ILLEGAL",
-    EOF: "EOF",
-
-    TAG: "TAG",
-    TEXT: "TEXT",
-
-    LINEBREAK: "LINEBREAK",
-    DOUBLE_LINEBREAK: "DOUBLE_LINEBREAK",
-
-    LBRACE: "LBRACE",
-    RBRACE: "RBRACE",
-}
 
 type Token struct {
     Type TokenType

@@ -14,7 +14,7 @@ func test(t *testing.T, input string, tests []struct { expectedType token.TokenT
 
         if tok.Type != test.expectedType {
             t.Fatalf("tests[%d] - tokentype wrong. expected=%s, got=%s",
-                i, token.TypeToString[test.expectedType], token.TypeToString[tok.Type])
+                i, test.expectedType, tok.Type)
         }
 
         if tok.Literal != test.expectedContent {
