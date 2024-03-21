@@ -5,6 +5,7 @@ import (
     "io"
     "os"
     "strings"
+    "time"
     "path/filepath"
     "proxima/parser"
     "proxima/evaluator"
@@ -28,7 +29,7 @@ const (
 )
 
 func exitOnError(msg string) {
-    fmt.Println("\x1b[31m -> |build| " + msg + "\x1b[0m")
+    fmt.Println("\x1b[31m-> |build| " + msg + "\x1b[0m")
     os.Exit(1)
 }
 
@@ -64,16 +65,7 @@ func main() {
 
     // flags
     var inputFiles []string
-    var outputFilename string
     var componentsPath string
-
-    for i, arg := range args {
-        if arg == "-o" && i + 1 < len(args) {
-            outputFilename = args[i + 1]
-            args = append(args[:i], args[i + 2:]...)
-            break
-        }
-    }
 
     for i, arg := range args {
         if arg == "-c" && i + 1 < len(args) {
@@ -92,14 +84,6 @@ func main() {
         inputFiles = getAllFiles("./")
     }
 
-    // output flag
-    if outputFilename != "" && !strings.HasSuffix(outputFilename, ".html") {
-        exitOnError("output file must have .html extension")
-    }
-    if outputFilename != "" && len(inputFiles) > 1 {
-        exitOnError("output file flag can only be used with one input file")
-    }
-
     // components flag
     if componentsPath != "" && !dirExists(componentsPath) {
         exitOnError("components directory does not exist")
@@ -107,11 +91,13 @@ func main() {
 
     // generate html files
     for _, file := range inputFiles {
-        generate(file, outputFilename, componentsPath)
+        generate(file, componentsPath)
     }
 }
 
-func generate(filename string, outputFilename string, componentsPath string) {
+func generate(filename string, componentsPath string) {
+    before := time.Now()
+
     if !strings.HasSuffix(filename, MAIN_EXT) {
         exitOnError(fmt.Sprintf("file %s is not a .prox file", filename))
     }
@@ -174,13 +160,7 @@ func generate(filename string, outputFilename string, componentsPath string) {
 
     html += POST_HEAD + evaluated + POST_BODY
     
-    var output string
-    if outputFilename != "" {
-        output = outputFilename
-    } else {
-        output = name + ".html"
-    }
-
+    output := name + ".html"
     file, err := os.Create(output)
     if err != nil {
         exitOnError(err.Error())
@@ -191,7 +171,11 @@ func generate(filename string, outputFilename string, componentsPath string) {
     if err != nil {
         exitOnError(err.Error())
     }
-    
-    msg := "\x1b[32m -> Generated " + output + "\x1b[0m"
+
+    after := time.Now()
+    elapsed := after.Sub(before)
+    elapsed = elapsed - elapsed%time.Millisecond
+
+    msg := fmt.Sprintf("\x1b[32m-> Generated %s (%s)\x1b[0m", output, elapsed)
     fmt.Println(msg)
 }
