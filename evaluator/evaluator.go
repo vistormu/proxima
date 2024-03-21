@@ -110,9 +110,6 @@ func getTagFuntion(key string) components.ComponentFunction {
             return function
         }
     }
-    if function, ok := components.Builtins[key]; ok {
-        return function
-    }
 
     return nil
 }
