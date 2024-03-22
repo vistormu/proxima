@@ -2,10 +2,10 @@ package main
 
 import (
     "fmt"
-    "io"
     "os"
     "strings"
     "time"
+    "regexp"
     "path/filepath"
     "proxima/parser"
     "proxima/evaluator"
@@ -14,18 +14,7 @@ import (
 
 const (
     MAIN_EXT = ".prox"
-    PRE_HEAD = `<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta charset="UTF-8">
-`
-    POST_HEAD = `</head>
-<body>
-`
-    POST_BODY = `</body>
-</html>
-`
+    VERSION = "0.2.0"
 )
 
 func exitOnError(msg string) {
@@ -91,19 +80,15 @@ func main() {
 
     // generate html files
     for _, file := range inputFiles {
+        if !strings.HasSuffix(file, MAIN_EXT) {
+            exitOnError(fmt.Sprintf("file %s is not a .prox file", file))
+        }
         generate(file, componentsPath)
     }
 }
 
 func generate(filename string, componentsPath string) {
     before := time.Now()
-
-    if !strings.HasSuffix(filename, MAIN_EXT) {
-        exitOnError(fmt.Sprintf("file %s is not a .prox file", filename))
-    }
-    splitFilename := strings.SplitN(filename, ".", 2)
-    name := splitFilename[0]
-    extension := "." + splitFilename[1]
 
     // check if components directory exists
     if componentsPath == "" {
@@ -114,53 +99,58 @@ func generate(filename string, componentsPath string) {
     }
 
     // read proxima file
-    content, err := os.ReadFile(name + extension)
+    content, err := os.ReadFile(filename)
     if err != nil {
         exitOnError(err.Error())
     }
 
-    out := os.Stdout
-
     // parse proxima file
-    p := parser.New(string(content), name + extension)
+    p := parser.New(string(content), filename)
     document := p.Parse()
-
     if len(p.Errors) != 0 {
         for _, err := range p.Errors {
-            io.WriteString(out, err.String() + "\n")
+            fmt.Println(err.String())
         }
-        return
+        os.Exit(1)
     }
 
     // evaluate proxima file
-    ev := evaluator.New(name + extension)
+    ev := evaluator.New(filename)
     evaluated := ev.Eval(document)
     if len(ev.Errors) != 0 {
         for _, err := range ev.Errors {
-            io.WriteString(out, err.String() + "\n")
+            fmt.Println(err.String())
         }
-        return
+        os.Exit(1)
     }
+
+    // find elements that should be contained in the head tag
+    headHtml := ""
+    bodySplit := strings.Split(formatHTML(evaluated), "\n")
+
+    for i, line := range bodySplit {
+        found := false
+        for _, element := range []string{"title", "meta", "link", "style", "script"} {
+            if strings.HasPrefix(line, "<" + element) || strings.HasPrefix(line, "</" + element) {
+                headHtml += line + "\n"
+                bodySplit[i] = ""
+                found = true
+            }
+        }
+        if !found {
+            break
+        }
+    }
+
+    bodyHtml := strings.TrimSpace(strings.Join(bodySplit, "\n"))
 
     // generate html file
-    html := PRE_HEAD
-
-    for strings.HasPrefix(evaluated, "<link") || strings.HasPrefix(evaluated, "<script") || strings.HasPrefix(evaluated, "<title") {
-        if strings.HasPrefix(evaluated, "<link") {
-            splitHTML := strings.SplitN(evaluated, ">", 2)
-            html += "\t" + splitHTML[0] + ">\n"
-            evaluated = splitHTML[1]
-        } else {
-            splitHTML := strings.SplitN(evaluated, ">", 3)
-            
-            html += "\t" + splitHTML[0] + ">" + splitHTML[1] + ">\n"
-            evaluated = splitHTML[2]
-        }
-    }
-
-    html += POST_HEAD + evaluated + POST_BODY
+    preHead := "<!DOCTYPE html>\n<html>\n<head>\n"
+    postHead := "</head>\n<body>\n"
+    postBody := "</body>\n</html>"
+    html := preHead + headHtml + postHead + bodyHtml + postBody
     
-    output := name + ".html"
+    output := strings.TrimSuffix(filename, MAIN_EXT) + ".html"
     file, err := os.Create(output)
     if err != nil {
         exitOnError(err.Error())
@@ -179,3 +169,23 @@ func generate(filename string, componentsPath string) {
     msg := fmt.Sprintf("\x1b[32m-> Generated %s (%s)\x1b[0m", output, elapsed)
     fmt.Println(msg)
 }
+
+func formatHTML(html string) string {
+	// Step 1: Insert new lines before "<", except at the beginning
+	regexNewLine := regexp.MustCompile(`(?m)(<)`)
+	formatted := regexNewLine.ReplaceAllString(html, "\n$1")
+
+	// Step 2: Trim leading whitespace from each line
+	lines := strings.Split(formatted, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimSpace(line)
+	}
+	formatted = strings.Join(lines, "\n")
+
+	// Step 3: Replace multiple newlines with a single newline
+	regexMultiNewLine := regexp.MustCompile(`\n+`)
+	formatted = regexMultiNewLine.ReplaceAllString(formatted, "\n")
+
+	return strings.TrimSpace(formatted)
+}
+
