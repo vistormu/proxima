@@ -11,7 +11,61 @@ import (
     "proxima/evaluator"
 )
 
-func generate(filename string, componentsPath string) {
+func generate(args []string) {
+        componentsPath := ""
+        for i, arg := range args {
+            if arg == "-c" && i + 1 < len(args) {
+                componentsPath = args[i + 1]
+                args = append(args[:i], args[i + 2:]...)
+                break
+            }
+        }
+
+        if componentsPath != "" && !dirExists(componentsPath) {
+            exitOnError("components directory does not exist")
+        }
+
+        if len(args) == 0 {
+            exitOnError("no files specified\nCheck 'proxima help generate' for more information")
+        }
+
+        if args[0] == "all" {
+            if len(args) != 2 {
+                exitOnError("invalid arguments\nCheck 'proxima help generate' for more information")
+            }
+            generateAll(args[1], componentsPath)
+            return
+        }
+
+        generateFiles(args, componentsPath)
+}
+
+func generateAll(dir string, componentsPath string) {
+    if !dirExists(dir) && dir != "." {
+        exitOnError(fmt.Sprintf("directory %s does not exist", dir))
+    }
+    if dir == "." {
+        dir = "./"
+    } else if !strings.HasSuffix(dir, "/") {
+        dir += "/"
+    }
+
+    files := getAllFiles(dir)
+    for _, file := range files {
+        generateFile(file, componentsPath)
+    }
+}
+
+func generateFiles(files []string, componentsPath string) {
+    for _, file := range files {
+        if !strings.HasSuffix(file, MAIN_EXT) {
+            exitOnError(fmt.Sprintf("file %s is not a .prox file", file))
+        }
+        generateFile(file, componentsPath)
+    }
+}
+
+func generateFile(filename string, componentsPath string) {
     before := time.Now()
 
     // check if components directory exists

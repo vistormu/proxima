@@ -15,8 +15,18 @@ func help(args []string) {
     case "version":
         helpVersion()
     default:
-        helpBasic()
+        helpError()
     }
+}
+
+func helpError() {
+    msg := `Error:
+
+    Command not found
+
+Use "proxima help" for more information
+`
+    fmt.Println(msg)
 }
 
 func helpBasic() {
