@@ -12,64 +12,56 @@ Proxima is a markup language that transpiles Proxima source code into HTML. It o
 
 ## Syntax
 
-The syntax is very simple, consisting only of five special characters: 
+The syntax is simple, consisting only of five special characters: 
 - `@` defines a tag.
 - `#` is used for comments.
 - `{` and `}` encloses tag arguments.
 - `\` is used to escape a character.
 
+## Components
 
-## Basic Usage
+The main feature of Proxima is that you can create your own components. By default, Proxima looks for files under a `components` directory in the root of your project.
 
 ### HTML Components
 
-A proxima file can be written as an HTML file. However, you can create HTML components placing `.html` files under a `components` directory in the root of your project. For example:
+You can create HTML components by placing `.html` files anywhere under the components' directory.
 ```
 <!-- ./components/spacer.html -->
 
 <div style="heigh: 20px;"></div>
 ```
 
-So now in your proxima file you can use
+In your Proxima file, you can use the component.
 ```
 # ./index.prox
 
 @spacer
 ```
 
-If you want to add arguments, every `@` symbol inside of the file will be replaced by the arguments in appearance order.
+If you want to add arguments, every `@` symbol inside the file will be replaced by the arguments in appearance order.
 ```
 <!-- ./components/smol-text.html -->
 <div style="font-size: 10px;">@</div>
 ```
 
-And in your proxima file:
+And in your Proxima file:
 ```
 # ./index.prox
 
 @smol-text{so basically im very smol}
 ```
 
-If the tag has only one argument, it can wrap the content until a double linebreak is encountered.
-```
-# ./index.prox
-
-@smol-text
-so basically
-im very smol
-```
-
 ### Python Components
-Components can also be written in Python for logic inclussion. The python file should be named after the component and the function must be called `function`.
+Components can also be written in Python. The Python file should be named after the component's name, and the function must be called `function`.
 
 ```
 # ./components/list.py
 
 def function(*items: tuple[str]) -> str:
-    value: str = "<ul>\n"
+    value: str = "<ul>"
     for item in items:
-        value += f"\t<li>{item}</li>\n"
-    value += "</ul>\n"
+        value += f"<li>{item}</li>"
+    value += "</ul>"
 
     return value
 ```
@@ -78,33 +70,51 @@ def function(*items: tuple[str]) -> str:
 # ./index.prox
 
 @list{
-    One
+This is the first sentence
 }{
-    Two
+This is the second sentence
 }{
-    Three
+This is the third sentence
 }
 ```
 
+### Adding elements to the head of the document
 
-### HTML file generation
+Proxima will auto-detect all elements that should be placed in the head of the document if they are placed on top of the Proxima document (via a component or embedded HTML).
 
-For creating the HTML file, use the command:
-```
-proxima <filename>.prox
-```
+## Usage
 
-For generating all proxima files recursively, use:
-```
-proxima all
-```
+Proxima has four commands available:
 
-### Adding a style, script or title
-Proxima offers builtin tags such as `@style`, `@script`, and `@title`. These can be placed at the beginning of a `.prox` file to include them into the `<header>` section of the HTML. Moreover, all embedded HTML code that begins with `<link` will also be placed in the `<header>` section.
+- generate [flags] [arguments]
+    - generates the HTML file. The arguments can be either files or directories
+    - the `-c` flag lets you specify the path to the components' directory. By default, the directory is set to `./components`
+    - the `-r` flag tells the compiler to recursively search for `.prox` files in the specified directory and subdirectories 
+- watch [flags] [file]
+    - watches the Proxima file for changes and auto-generates the HTML file
+    - the `-c` flag lets you specify the path to the components' directory. By default, the directory is set to `./components`
+- version
+    - prints the current version
+- help
+    - prints the Proxima CLI documentation
 
 ## Installation
-Download the install script from [Releases Page](https://github.com/vistormu/proxima/releases) and execute it:
+Download the Proxima binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
 
+Then, rename it to `proxima`:
+
+```bash
+mv proxima-<ARCH> proxima
 ```
-sh install-proxima.sh
+
+Give it execution privileges:
+
+```bash
+chmod +x proxima
+```
+
+And move it to the system's binaries:
+
+```bash
+mv proxima /usr/local/bin/
 ```
