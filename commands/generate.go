@@ -18,12 +18,19 @@ func generate(args []string) error {
         return err
     }
     isRecursive := getIsRecursive(args)
+
+    filesAndDirs := []string{}
+    for _, arg := range args {
+        if arg != "" {
+            filesAndDirs = append(filesAndDirs, arg)
+        }
+    }
     
     // errors
-    if len(args) == 0 {
+    if len(filesAndDirs) == 0 {
         return fmt.Errorf("no files specified\nCheck 'proxima help generate' for more information")
     }
-    for _, arg := range args {
+    for _, arg := range filesAndDirs {
         isDirectory, _ := isDir(arg)
         if isDirectory {
             directoryExists, _ := dirExists(arg)
@@ -38,7 +45,7 @@ func generate(args []string) error {
     }
 
     // generate
-    for _, arg := range args {
+    for _, arg := range filesAndDirs {
         isDirectory, _ := isDir(arg)
         if isDirectory {
             err := generateDir(arg, componentsPath, isRecursive)
@@ -65,7 +72,8 @@ func getComponentsPath(args []string) (string, error) {
     for i, arg := range args {
         if arg == "-c" && i + 1 < len(args) {
             componentsPath = args[i + 1]
-            args = append(args[:i], args[i + 2:]...)
+            args[i] = ""
+            args[i + 1] = ""
             break
         }
     }

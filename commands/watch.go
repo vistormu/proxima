@@ -14,14 +14,21 @@ func watch(args []string) error {
         return err
     }
 
+    newArgs := []string{}
+    for _, arg := range args {
+        if arg != "" {
+            newArgs = append(newArgs, arg)
+        }
+    }
+
     // errors
-    if len(args) == 0 {
+    if len(newArgs) == 0 {
         return fmt.Errorf("no files specified\nCheck 'proxima help watch' for more information")
     }
-    if len(args) > 1 {
+    if len(newArgs) > 1 {
         return fmt.Errorf("watching multiple files is still not supported")
     }
-    filePath := args[0]
+    filePath := newArgs[0]
 
     if !strings.HasSuffix(filePath, MAIN_EXT) {
         return fmt.Errorf("file %s is not a .prox file", filePath)
