@@ -47,7 +47,7 @@ Use "proxima help <command>" for more information about a command.
 func helpGenerate() {
     msg := `Usage:
 
-    proxima generate [-c <components_path>] [arguments]
+    proxima generate [-c <components_path>] [-r] [arguments]
 
 Description:
 
@@ -57,10 +57,18 @@ Flags:
 
     -c <components_path>    Path to the components directory. By default, the components directory is "./components"
 
-Arguments:
+    -r                      Generate HTML files from all .prox files recursively
 
-    filename.prox   The .prox file to generate an HTML file from
-    all <dir>       Generate HTML files from all .prox files in the specified directory
+Arguments:
+    
+    file1 dir1 [file2 dir2] List of .prox files and directories to generate HTML files from
+
+Examples:
+    
+    proxima generate -c ./components file1.prox file2.prox
+    proxima generate -r dir1 dir2
+    proxima generate dir1
+    proxima generate file1.prox dir1
 `
 
     fmt.Println(msg)

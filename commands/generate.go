@@ -12,100 +12,164 @@ import (
 )
 
 func generate(args []string) {
-        componentsPath := ""
-        for i, arg := range args {
-            if arg == "-c" && i + 1 < len(args) {
-                componentsPath = args[i + 1]
-                args = append(args[:i], args[i + 2:]...)
-                break
+    // flags
+    componentsPath, err := getComponentsPath(args)
+    if err != nil {
+        exitOnError(err.Error())
+    }
+    isRecursive := getIsRecursive(args)
+    
+    // errors
+    if len(args) == 0 {
+        exitOnError("no files specified\nCheck 'proxima help generate' for more information")
+    }
+    for _, arg := range args {
+        isDirectory, _ := isDir(arg)
+        if isDirectory {
+            directoryExists, _ := dirExists(arg)
+            if !directoryExists {
+                exitOnError(fmt.Sprintf("directory %s does not exist", arg))
+            }
+        } else {
+            if !strings.HasSuffix(arg, MAIN_EXT) {
+                exitOnError(fmt.Sprintf("file %s is not a .prox file", arg))
             }
         }
+    }
 
-        if componentsPath != "" && !dirExists(componentsPath) {
-            exitOnError("components directory does not exist")
-        }
-
-        if len(args) == 0 {
-            exitOnError("no files specified\nCheck 'proxima help generate' for more information")
-        }
-
-        if args[0] == "all" {
-            if len(args) != 2 {
-                exitOnError("invalid arguments\nCheck 'proxima help generate' for more information")
+    // generate
+    for _, arg := range args {
+        isDirectory, _ := isDir(arg)
+        if isDirectory {
+            err := generateDir(arg, componentsPath, isRecursive)
+            if err != nil {
+                exitOnError(err.Error())
             }
-            generateAll(args[1], componentsPath)
-            return
+        } else {
+            err := generateFile(arg, componentsPath)
+            if err != nil {
+                exitOnError(err.Error())
+            }
         }
-
-        generateFiles(args, componentsPath)
+    }
 }
 
-func generateAll(dir string, componentsPath string) {
-    if !dirExists(dir) && dir != "." {
-        exitOnError(fmt.Sprintf("directory %s does not exist", dir))
+
+// =====
+// FLAGS
+// =====
+func getComponentsPath(args []string) (string, error) {
+    componentsPath := ""
+    for i, arg := range args {
+        if arg == "-c" && i + 1 < len(args) {
+            componentsPath = args[i + 1]
+            args = append(args[:i], args[i + 2:]...)
+            break
+        }
     }
+
+    componentsPathExists, err := dirExists(componentsPath)
+    if err != nil {
+        return "", err
+    }
+
+    if componentsPath != "" && !componentsPathExists {
+        return "", fmt.Errorf("components directory does not exist")
+    }
+
+    if componentsPath != "" && !strings.HasSuffix(componentsPath, "/") {
+        componentsPath += "/"
+    }
+
+    defaultComponentsPathExists, _ := dirExists("./components")
+    if componentsPath == "" && defaultComponentsPathExists {
+        componentsPath = "./components/"
+    }
+
+    return componentsPath, nil
+}
+func getIsRecursive(args []string) bool {
+    for i, arg := range args {
+        if arg == "-r" {
+            args = append(args[:i], args[i + 1:]...)
+            return true
+        }
+    }
+    return false
+}
+
+// ========
+// GENERATE
+// ========
+func generateDir(dir string, componentsPath string, isRecursive bool) error {
     if dir == "." {
         dir = "./"
     } else if !strings.HasSuffix(dir, "/") {
         dir += "/"
     }
 
-    files := getAllFiles(dir)
-    for _, file := range files {
-        generateFile(file, componentsPath)
-    }
-}
-
-func generateFiles(files []string, componentsPath string) {
-    for _, file := range files {
-        if !strings.HasSuffix(file, MAIN_EXT) {
-            exitOnError(fmt.Sprintf("file %s is not a .prox file", file))
+    var files []string
+    var err error
+    if isRecursive {
+        files, err = getAllFiles(dir)
+        if err != nil {
+            return err
         }
-        generateFile(file, componentsPath)
+    } else {
+        files, err = getFilesInDir(dir)
+        if err != nil {
+            return err
+        }
     }
+    for _, file := range files {
+        err := generateFile(file, componentsPath)
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
 }
 
-func generateFile(filename string, componentsPath string) {
+func generateFile(filename string, componentsPath string) error {
     before := time.Now()
 
-    // check if components directory exists
-    if componentsPath == "" {
-        componentsPath = "./components"
-    }
-    if dirExists(componentsPath) {
+    // initialize components
+    if componentsPath != "" {
         components.Init(componentsPath)
     }
 
-    // read proxima file
+    // read
     content, err := os.ReadFile(filename)
     if err != nil {
-        exitOnError(err.Error())
+        return err
     }
 
-    // parse proxima file
+    // parse
     p := parser.New(string(content), filename)
     document := p.Parse()
     if len(p.Errors) != 0 {
+        errorString := ""
         for _, err := range p.Errors {
-            fmt.Println(err.String())
+            errorString += err.String() + "\n"
         }
-        os.Exit(1)
+        return fmt.Errorf(errorString)
     }
 
-    // evaluate proxima file
+    // evaluate
     ev := evaluator.New(filename)
     evaluated := ev.Eval(document)
     if len(ev.Errors) != 0 {
+        errorString := ""
         for _, err := range ev.Errors {
-            fmt.Println(err.String())
+            errorString += err.String() + "\n"
         }
-        os.Exit(1)
+        return fmt.Errorf(errorString)
     }
 
-    // find elements that should be contained in the head tag
+    // format
     headHtml := ""
     bodySplit := strings.Split(formatHTML(evaluated), "\n")
-
     for i, line := range bodySplit {
         found := false
         for _, element := range []string{"title", "meta", "link", "style", "script"} {
@@ -122,22 +186,22 @@ func generateFile(filename string, componentsPath string) {
 
     bodyHtml := strings.TrimSpace(strings.Join(bodySplit, "\n"))
 
-    // generate html file
     preHead := "<!DOCTYPE html>\n<html>\n<head>\n"
     postHead := "</head>\n<body>\n"
     postBody := "\n</body>\n</html>"
     html := preHead + headHtml + postHead + bodyHtml + postBody
     
+    // generate html file
     output := strings.TrimSuffix(filename, MAIN_EXT) + ".html"
     file, err := os.Create(output)
     if err != nil {
-        exitOnError(err.Error())
+        return err
     }
     defer file.Close()
 
     _, err = file.WriteString(html)
     if err != nil {
-        exitOnError(err.Error())
+        return err
     }
 
     after := time.Now()
@@ -146,6 +210,8 @@ func generateFile(filename string, componentsPath string) {
 
     msg := fmt.Sprintf("\x1b[32m-> Generated %s (%s)\x1b[0m", output, elapsed)
     fmt.Println(msg)
+
+    return nil
 }
 
 func formatHTML(html string) string {
