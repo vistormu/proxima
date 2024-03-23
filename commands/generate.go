@@ -11,28 +11,28 @@ import (
     "proxima/evaluator"
 )
 
-func generate(args []string) {
+func generate(args []string) error {
     // flags
     componentsPath, err := getComponentsPath(args)
     if err != nil {
-        exitOnError(err.Error())
+        return err
     }
     isRecursive := getIsRecursive(args)
     
     // errors
     if len(args) == 0 {
-        exitOnError("no files specified\nCheck 'proxima help generate' for more information")
+        return fmt.Errorf("no files specified\nCheck 'proxima help generate' for more information")
     }
     for _, arg := range args {
         isDirectory, _ := isDir(arg)
         if isDirectory {
             directoryExists, _ := dirExists(arg)
             if !directoryExists {
-                exitOnError(fmt.Sprintf("directory %s does not exist", arg))
+                return fmt.Errorf("directory %s does not exist", arg)
             }
         } else {
             if !strings.HasSuffix(arg, MAIN_EXT) {
-                exitOnError(fmt.Sprintf("file %s is not a .prox file", arg))
+                return fmt.Errorf("file %s is not a .prox file", arg)
             }
         }
     }
@@ -43,15 +43,17 @@ func generate(args []string) {
         if isDirectory {
             err := generateDir(arg, componentsPath, isRecursive)
             if err != nil {
-                exitOnError(err.Error())
+                return err
             }
         } else {
             err := generateFile(arg, componentsPath)
             if err != nil {
-                exitOnError(err.Error())
+                return err
             }
         }
     }
+
+    return nil
 }
 
 
@@ -122,7 +124,7 @@ func generateDir(dir string, componentsPath string, isRecursive bool) error {
         }
     }
     for _, file := range files {
-        err := generateFile(file, componentsPath)
+        err = generateFile(file, componentsPath)
         if err != nil {
             return err
         }

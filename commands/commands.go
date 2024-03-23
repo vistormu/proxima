@@ -10,9 +10,15 @@ func Execute(args []string) {
     case "version":
         version()
     case "generate":
-        generate(args[1:])
+        err := generate(args[1:])
+        if err != nil {
+            exitOnError(err.Error())
+        }
     case "watch":
-        watch()
+        err := watch(args[1:])
+        if err != nil {
+            exitOnError(err.Error())
+        }
     case "help":
         help(args[1:])
     default:

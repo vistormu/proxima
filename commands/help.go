@@ -14,6 +14,8 @@ func help(args []string) {
         helpGenerate()
     case "version":
         helpVersion()
+    case "watch":
+        helpWatch()
     default:
         helpError()
     }
@@ -38,6 +40,7 @@ Commands:
     
     generate   Generate a new HTML file from a .prox file
     version    Display the current version
+    watch      Watch a .prox file for changes and generate the corresponding HTML file
 
 Use "proxima help <command>" for more information about a command.
 `
@@ -84,5 +87,26 @@ Description:
     Display the current version
 `
     
+    fmt.Println(msg)
+}
+
+func helpWatch() {
+    msg := `Usage:
+
+    proxima watch [arguments]
+
+Description:
+
+    Watch a .prox file for changes and generate the corresponding HTML file
+
+Arguments:
+    
+    file Watch a single .prox file
+
+Examples:
+
+    proxima watch file.prox
+`
+
     fmt.Println(msg)
 }
