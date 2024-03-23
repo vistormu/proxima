@@ -8,6 +8,13 @@ import (
 )
 
 func watch(args []string) error {
+    // flags
+    componentsPath, err := getComponentsPath(args)
+    if err != nil {
+        return err
+    }
+
+    // errors
     if len(args) == 0 {
         return fmt.Errorf("no files specified\nCheck 'proxima help watch' for more information")
     }
@@ -20,6 +27,7 @@ func watch(args []string) error {
         return fmt.Errorf("file %s is not a .prox file", filePath)
     }
     
+    // watch
     ticker := time.NewTicker(2 * time.Second)
     defer ticker.Stop()
 
@@ -39,7 +47,7 @@ func watch(args []string) error {
         }
         currentModTime := fileInfo.ModTime()
         if currentModTime.After(lastModTime) {
-            err := generate([]string{filePath})
+            err := generateFile(filePath, componentsPath)
             if err != nil {
                 fmt.Println("\x1b[31m-> |build| Error transpiling file:\x1b[0m\n", err)
             }
