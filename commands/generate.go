@@ -3,7 +3,6 @@ package commands
 import (
     "fmt"
     "os"
-    "regexp"
     "strings"
     "time"
     "proxima/components"
@@ -225,21 +224,27 @@ func generateFile(filename string, componentsPath string) error {
 }
 
 func formatHTML(html string) string {
-	// Step 1: Insert new lines before "<", except at the beginning
-	regexNewLine := regexp.MustCompile(`(?m)(<)`)
-	formatted := regexNewLine.ReplaceAllString(html, "\n$1")
+	var sb strings.Builder
 
-	// Step 2: Trim leading whitespace from each line
-	lines := strings.Split(formatted, "\n")
-	for i, line := range lines {
-		lines[i] = strings.TrimSpace(line)
+	inTag := false
+	for i := 0; i < len(html); i++ {
+		if html[i] == '<' && !(i+1 < len(html) && html[i+1] == '/') {
+			if i > 0 {
+				sb.WriteRune('\n')
+			}
+		}
+		sb.WriteByte(html[i])
+
+		if html[i] == '<' {
+			inTag = true
+		} else if inTag && html[i] == '>' {
+			inTag = false
+		}
 	}
-	formatted = strings.Join(lines, "\n")
 
-	// Step 3: Replace multiple newlines with a single newline
-	regexMultiNewLine := regexp.MustCompile(`\n+`)
-	formatted = regexMultiNewLine.ReplaceAllString(formatted, "\n")
+	formatted := sb.String()
+	formatted = strings.TrimSpace(formatted)
+	formatted = strings.ReplaceAll(formatted, "\n\n", "\n")
 
-	return strings.TrimSpace(formatted)
+	return formatted
 }
-
