@@ -5,6 +5,7 @@ import (
     "log"
     "os"
     "time"
+    "strings"
 )
 
 func watch(args []string) error {
@@ -15,6 +16,10 @@ func watch(args []string) error {
         return fmt.Errorf("watching multiple files is still not supported")
     }
     filePath := args[0]
+
+    if !strings.HasSuffix(filePath, MAIN_EXT) {
+        return fmt.Errorf("file %s is not a .prox file", filePath)
+    }
     
     ticker := time.NewTicker(2 * time.Second) // Check every 2 seconds
     defer ticker.Stop()
