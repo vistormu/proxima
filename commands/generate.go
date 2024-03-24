@@ -100,7 +100,7 @@ func getComponentsPath(args []string) (string, error) {
 func getIsRecursive(args []string) bool {
     for i, arg := range args {
         if arg == "-r" {
-            args = append(args[:i], args[i + 1:]...)
+            args[i] = ""
             return true
         }
     }
