@@ -6,6 +6,5 @@ import (
 )
 
 func main() {
-    args := os.Args[1:]
-    commands.Execute(args)
+    commands.Execute(os.Args)
 }

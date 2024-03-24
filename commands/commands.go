@@ -6,6 +6,11 @@ const (
 )
 
 func Execute(args []string) {
+    if len(args) < 2 {
+        helpError()
+    }
+    args = args[1:]
+
     switch args[0] {
     case "version":
         version()
