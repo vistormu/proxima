@@ -1,4 +1,4 @@
-# Proxima: A Simple Templating Markup Language
+# Proxima: A Markup Language Wrapper Markup Language
 
 <p align="center">
     <a href="https://github.com/vistormu/adam_simulator">
@@ -6,13 +6,13 @@
     </a>
 </p>
 
-Proxima is a markup language that transpiles Proxima source code into HTML. It offers clearer syntax instead of plain HTML/CSS coding.
+Proxima is a markup language that wraps your favorite markup language. The main feature is that you can create your own components in your favorite dynamic language: Python, JavaScript, Ruby, and Lua. In this way, you can create reusable components that can be used in any Proxima file.
 
 > Important: Proxima is still under development, so there might be breaking changes between releases until v1.0.0 is out.
 
 ## Syntax
 
-The syntax is simple, consisting only of five special characters: 
+The syntax is designed to be minimal and simple, consisting only of five special characters: 
 - `@` defines a tag.
 - `#` is used for comments.
 - `{` and `}` encloses tag arguments.
@@ -20,44 +20,14 @@ The syntax is simple, consisting only of five special characters:
 
 ## Components
 
-The main feature of Proxima is that you can create your own components. By default, Proxima looks for files under a `components` directory in the root of your project.
+The components are defined under the `components` directory in the root of your project. The components can be written in HTML, Python, JavaScript, Ruby, and Lua.
 
-### HTML Components
-
-You can create HTML components by placing `.html` files anywhere under the components' directory.
-```
-<!-- ./components/spacer.html -->
-
-<div style="heigh: 20px;"></div>
-```
-
-In your Proxima file, you can use the component.
-```
-# ./index.prox
-
-@spacer
-```
-
-If you want to add arguments, every `@` symbol inside the file will be replaced by the arguments in appearance order.
-```
-<!-- ./components/smol-text.html -->
-<div style="font-size: 10px;">@</div>
-```
-
-And in your Proxima file:
-```
-# ./index.prox
-
-@smol-text{so basically im very smol}
-```
-
-### Python Components
-Components can also be written in Python. The Python file should be named after the component's name, and the function must be called `function`.
+In the following example, we can create a simple HTML list component in Python:
 
 ```
 # ./components/list.py
 
-def function(*items: tuple[str]) -> str:
+def function(*items: str) -> str:
     value: str = "<ul>"
     for item in items:
         value += f"<li>{item}</li>"
@@ -65,6 +35,8 @@ def function(*items: tuple[str]) -> str:
 
     return value
 ```
+
+Then, we can use the component in our Proxima file:
 
 ```
 # ./index.prox
@@ -77,10 +49,6 @@ This is the second sentence
 This is the third sentence
 }
 ```
-
-### Adding elements to the head of the document
-
-Proxima will auto-detect all elements that should be placed in the head of the document if they are placed on top of the Proxima document (via a component or embedded HTML).
 
 ## Usage
 

@@ -9,9 +9,16 @@ const (
     TEXT = "TEXT"
 
     LINEBREAK = "LINEBREAK"
-    DOUBLE_LINEBREAK = "DOUBLE_LINEBREAK"
+
     LBRACE = "LBRACE"
     RBRACE = "RBRACE"
+    LANGLE = "LANGLE"
+    RANGLE = "RANGLE"
+
+    // ...
+    HASHTAG = "HASHTAG"
+    SPACE = "SPACE"
+    BACKSLASH = "BACKSLASH"
 )
 
 type Token struct {
@@ -19,26 +26,32 @@ type Token struct {
     Literal string
 }
 
-var Characters = map[byte]Token{
+var Characters = map[rune]Token{
     0: {EOF, ""},
+    '@': {TAG, "@"},
     '\n': {LINEBREAK, "\n"},
     '{': {LBRACE, "{"},
     '}': {RBRACE, "}"},
+    '<': {LANGLE, "<"},
+    '>': {RANGLE, ">"},
+    '#': {HASHTAG, "#"},
+    ' ': {SPACE, " "},
+    '\\': {BACKSLASH, "\\"},
 }
 
-func NewCharToken(char byte) Token {
-    token, ok := Characters[char]
-    if !ok {
-        return Token{ILLEGAL, string(char)}
+func New(literal any) Token {
+    switch literal.(type) {
+    case rune:
+        token, ok := Characters[literal.(rune)]
+        if !ok {
+            return Token{ILLEGAL, string(literal.(rune))}
+        }
+        return token
+
+    case string:
+        return Token{TEXT, literal.(string)}
+
+    default:
+        return Token{ILLEGAL, ""}
     }
-    return token
-}
-func NewTwoCharToken(char1, char2 byte) Token {
-    return Token{DOUBLE_LINEBREAK, "\n\n"} // WIP
-}
-func NewTagToken(tag string) Token {
-    return Token{TAG, tag}
-}
-func NewTextToken(text string) Token {
-    return Token{TEXT, text}
 }

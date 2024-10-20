@@ -5,96 +5,77 @@ import (
 )
 
 type Tokenizer struct {
-    input string
+    input []rune
+    inputLen int
     position int
-    peekPosition int
-    char byte
 }
 
-// PUBLIC
-func New(input string) *Tokenizer {
-    t := &Tokenizer{input: input}
-    t.readChar()
-    return t
-}
-
-func (t *Tokenizer) GetToken() token.Token {
-    if t.char == '#' {
-        t.skipComment()
+func New(input []rune) *Tokenizer {
+    return &Tokenizer{
+        input,
+        len(input),
+        0,
     }
-    if t.char == '\\' {
-        t.readChar()
-        switch t.char {
-        case 'n':
-            t.readChar()
-            return token.NewTextToken("<br>")
-        case '<':
-            t.readChar()
-            return token.NewTextToken("&lt;")
-        case '>':
-            t.readChar()
-            return token.NewTextToken("&gt;")
+}
+
+func (t *Tokenizer) Tokenize() []token.Token {
+    tokens := []token.Token{}
+
+    for tok := t.token(); tok.Type != token.EOF; tok = t.token() {
+        tokens = append(tokens, tok)
+    }
+
+    return tokens
+}
+
+func (t *Tokenizer) token() token.Token {
+    // read char
+    char, peekChar := t.readChar()
+
+    // skip whitespace
+    for isWhitespace(char) {
+        char, peekChar = t.readChar()
+    }
+
+    // text
+    if isText(char) {
+        literal := ""
+        for isText(char) {
+            literal += string(char)
+
+            if !isText(peekChar) {
+                break
+            }
+
+            char, peekChar = t.readChar()
         }
-        text := string(t.char)
-        t.readChar()
-        return token.NewTextToken(text)
-    }
-    if t.char == '@' {
-        return token.NewTagToken(t.readTag())
-    }
-    if isText(t.char) {
-        return token.NewTextToken(t.readText())
-    }
-    if t.char == '\n' && t.peekChar() == '\n' {
-        t.readChar()
-        t.readChar()
-        return token.NewTwoCharToken('\n', '\n')
+        return token.New(literal)
     }
 
-    token := token.NewCharToken(t.char)
-    t.readChar()
-
-    return token
+    // rest
+    return token.New(char)
 }
 
-// PRIVATE
-func (t *Tokenizer) peekChar() byte {
-    if t.peekPosition >= len(t.input) {
-        return 0
+func (t *Tokenizer) readChar() (rune, rune) {
+    if t.position >= t.inputLen {
+        return 0, 0
     }
-    return t.input[t.peekPosition]
-}
-func (t *Tokenizer) readChar() {
-    if t.peekPosition >= len(t.input) {
-        t.char = 0
-    } else {
-        t.char = t.input[t.peekPosition]
+
+    currentChar := t.input[t.position]
+    peekChar := rune(0)
+    if t.position+1 < t.inputLen {
+        peekChar = t.input[t.position+1]
     }
-    t.position = t.peekPosition
-    t.peekPosition += 1
-}
-func (t *Tokenizer) readText() string {
-    start := t.position
-    for isText(t.char) {
-        t.readChar()
-    }
-    return t.input[start:t.position]
-}
-func (t *Tokenizer) readTag() string {
-    start := t.position
-    for t.char != ' ' && t.char != '\n' && t.char != 0 && t.char != '{' {
-        t.readChar()
-    }
-    return t.input[start:t.position]
-} 
-func (t *Tokenizer) skipComment() {
-    for t.char != '\n' && t.char != 0 {
-        t.readChar()
-    }
+
+    t.position++
+
+    return currentChar, peekChar
 }
 
-// HELPERS
-func isText(char byte) bool {
+func isWhitespace(char rune) bool {
+    return char == '\t' || char == '\r'
+}
+func isText(char rune) bool {
     _, ok := token.Characters[char]
-    return !ok && char != '@' && char != '\\' && char != '#'
+    return (!ok || char == ' ') && !isWhitespace(char)
 }
