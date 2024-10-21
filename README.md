@@ -52,20 +52,6 @@ This is the third sentence
 
 ## Usage
 
-Proxima has four commands available:
-
-- generate [flags] [arguments]
-    - generates the HTML file. The arguments can be either files or directories
-    - the `-c` flag lets you specify the path to the components' directory. By default, the directory is set to `./components`
-    - the `-r` flag tells the compiler to recursively search for `.prox` files in the specified directory and subdirectories 
-- watch [flags] [file]
-    - watches the Proxima file for changes and auto-generates the HTML file
-    - the `-c` flag lets you specify the path to the components' directory. By default, the directory is set to `./components`
-- version
-    - prints the current version
-- help
-    - prints the Proxima CLI documentation
-
 ## Installation
 Download the Proxima binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
 
