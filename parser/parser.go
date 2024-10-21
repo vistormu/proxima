@@ -1,164 +1,242 @@
 package parser
 
 import (
-    "fmt"
     "strings"
-    "proxima/token"
-    "proxima/tokenizer"
-    "proxima/ast"
-    "proxima/error"
+
+    "proxima/config"
+	"proxima/ast"
+	"proxima/errors"
+	"proxima/token"
 )
 
 type Parser struct {
-    tokenizer *tokenizer.Tokenizer
-
-    currentToken token.Token
-    peekToken token.Token
+    tokens []token.Token
+    position int
+    nTokens int
 
     currentLine int
+    file string
 
-    Errors []error.Error
-    File string
+    lineBreakValue string
+    doubleLineBreakValue string
+
+    Errors []error
 }
 
-// PUBLIC
-func New(input string, file string) *Parser {
-    p := &Parser{tokenizer: tokenizer.New(input), currentLine: 1, File: file}
-    p.nextToken()
-    p.nextToken()
-    return p
-}
-func (p *Parser) Parse() *ast.Document {
-    document := &ast.Document{}
-
-    for !p.currentTokenIs(token.EOF) {
-        paragraph := p.parseParagraph()
-        if len(paragraph.Content) > 0 {
-            document.Paragraphs = append(document.Paragraphs, paragraph)
-        }
-    }
-
-    return document
-}
-
-// TOKENS
-func (p *Parser) nextToken() {
-    p.currentToken = p.peekToken
-    p.peekToken = p.tokenizer.GetToken()
-
-    if p.currentTokenIs(token.LINEBREAK) {
-        p.currentLine += 1
+func New(tokens []token.Token, file string, config *config.Config) *Parser {
+    return &Parser{
+        tokens,
+        -1,
+        len(tokens),
+        1,
+        file,
+        *config.Parser.LineBreakValue,
+        *config.Parser.DoubleLineBreakValue,
+        []error{},
     }
 }
-func (p *Parser) currentTokenIs(t token.TokenType) bool {
-    return p.currentToken.Type == t 
-}
-func (p *Parser) peekTokenIs(t token.TokenType) bool {
-    return p.peekToken.Type == t
-}
 
-// ERRORS
-func (p *Parser) addError(message string) {
-    p.Errors = append(p.Errors, error.Error{
-        Stage: "Parser",
-        Line: p.currentLine,
-        Message: message,
-        File: p.File,
-    })
-}
+func (p *Parser) Parse() []ast.Expression {
+    expressions := []ast.Expression{}
 
-// HELPERS
-func (p *Parser) paragraphIsTerminated() bool {
-    condition1 := p.currentTokenIs(token.DOUBLE_LINEBREAK)
-    condition2 := p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.EOF)
-    condition3 := p.currentTokenIs(token.EOF)
-
-    return condition1 || condition2 || condition3
-}
-
-// PARSE
-func (p *Parser) parseParagraph() *ast.Paragraph {
-    paragraph := &ast.Paragraph{}
-
-    for !p.paragraphIsTerminated() {
-        expression := p.parseInline()
+    for p.position < p.nTokens {
+        // parse expression
+        expression := p.parseExpression()
         if expression != nil {
-            paragraph.Content = append(paragraph.Content, expression)
+            expressions = append(expressions, expression)
+        }
+
+        // check for line breaks
+        c1 := p.rawPeekToken(1).Type == token.LINEBREAK
+        c2 := p.rawPeekToken(2).Type == token.LINEBREAK
+
+        if c1 && c2 { // double line break
+            expressions = append(expressions, &ast.Text{Value: p.doubleLineBreakValue})
+        } else if c1 { // single line break
+            expressions = append(expressions, &ast.Text{Value: p.lineBreakValue})
         }
     }
-    if !p.currentTokenIs(token.EOF) {
-        p.nextToken()
-    }
 
-    return paragraph
+    return expressions
 }
 
-func (p *Parser) parseInline() ast.Inline {
-    switch p.currentToken.Type {
-    case token.LINEBREAK:
-        p.currentLine += 1
-        p.nextToken()
-        return nil
-    case token.DOUBLE_LINEBREAK:
-        p.currentLine += 2
-        p.nextToken()
-        return nil
+// =======
+// HELPERS
+// =======
+func (p *Parser) readToken() token.Token {
+    p.position++
+
+    if p.position >= p.nTokens {
+        return token.New(rune(0))
+    }
+
+    t := p.tokens[p.position]
+
+    if t.Type == token.LINEBREAK {
+        p.currentLine++
+        t = p.readToken()
+    }
+
+    return t
+}
+
+func (p *Parser) currentToken() token.Token {
+    if p.position >= p.nTokens {
+        return token.New(rune(0))
+    }
+
+    return p.tokens[p.position]
+}
+
+func (p *Parser) peekToken() token.Token {
+    if p.position + 1 >= p.nTokens {
+        return token.New(rune(0))
+    }
+
+    index := p.position + 1
+    peekToken := p.tokens[index]
+    for peekToken.Type == token.LINEBREAK {
+        index++
+        if index >= p.nTokens {
+            return token.New(rune(0))
+        }
+
+        peekToken = p.tokens[index]
+    }
+
+    return peekToken
+}
+
+func (p *Parser) rawPeekToken(position int) token.Token {
+    if p.position + position >= p.nTokens {
+        return token.New(rune(0))
+    }
+
+    return p.tokens[p.position + position]
+}
+
+func (p *Parser) addError(errorType errors.ErrorType, args ...any) {
+    p.Errors = append(p.Errors, errors.NewParseError(errorType, p.file, p.currentLine, args...))
+}
+
+func (p *Parser) expect(tokenType token.TokenType) (token.Token, bool) {
+    t := p.readToken()
+
+    if t.Type != tokenType {
+        p.addError(errors.EXPECTED_TOKEN, tokenType, t)
+        return t, false
+    }
+
+    return t, true
+}
+
+// =======
+// PARSERS
+// =======
+func (p *Parser) parseExpression() ast.Expression {
+    t := p.readToken()
+
+    switch t.Type {
     case token.TEXT:
-        return p.parseText()
+        return &ast.Text{Value: t.Literal, LineNumber: p.currentLine}
+
     case token.TAG:
         return p.parseTag()
+
+    case token.EOF:
+        return nil
+
     default:
-        p.addError(fmt.Sprintf("Unexpected token: %s", p.currentToken.Type))
-        p.nextToken()
+        p.addError(errors.UNEXPECTED_TOKEN, t)
         return nil
     }
 }
-func (p *Parser) parseText() *ast.Text {
-    text := &ast.Text{Content: p.currentToken.Literal}
-    p.nextToken()
 
-    for p.currentTokenIs(token.LINEBREAK) && p.peekTokenIs(token.TEXT) {
-        p.nextToken()
-        text.Content += "\n" + p.currentToken.Literal
-        p.currentLine += 1
-        p.nextToken()
-    }
-
-    return text
-}
 func (p *Parser) parseTag() *ast.Tag {
-    tag := &ast.Tag{Name: strings.TrimPrefix(p.currentToken.Literal, "@"), LineNumber: p.currentLine}
-    p.nextToken()
+    tag := &ast.Tag{LineNumber: p.currentLine}
 
-    if p.paragraphIsTerminated() || !p.currentTokenIs(token.LBRACE) {
-        return tag
+    // tag name
+    t, ok := p.expect(token.TEXT)
+    if !ok {
+        return nil
+    }
+    if strings.Contains(t.Literal, " ") {
+        p.addError(errors.WRONG_TAG_NAME, t.Literal)
+        return nil
+    }
+    tag.Name = t.Literal
+
+    // opening tag
+    _, ok = p.expect(token.LBRACE)
+    if !ok {
+        return nil
     }
 
-    var inlineExpressions []ast.Inline
-    p.nextToken()
+    // tag arguments
+    tag.Args = p.parseArguments() // entry: LBRACE, exit: RBRACE
 
-    for !p.paragraphIsTerminated() {
-        if p.currentTokenIs(token.RBRACE) && !p.peekTokenIs(token.LBRACE) {
-            tag.Arguments = append(tag.Arguments, inlineExpressions)
-            p.nextToken()
+    return tag
+}
 
-            return tag
+func (p *Parser) parseArguments() []ast.Argument {
+    args := []ast.Argument{}
+
+    // args
+    for p.currentToken().Type != token.RBRACE {
+        if p.currentToken().Type == token.EOF {
+            p.addError(errors.UNCLOSED_TAG)
+            return args
         }
 
-        if p.currentTokenIs(token.RBRACE) && p.peekTokenIs(token.LBRACE) {
-            tag.Arguments = append(tag.Arguments, inlineExpressions)
-            inlineExpressions = []ast.Inline{}
-            p.nextToken()
-            p.nextToken()
+        arg := p.parseArgument() // entry: LBRACE, exit: RBRACE
+        args = append(args, arg)
+
+        if p.peekToken().Type == token.LBRACE {
+            p.readToken()
             continue
         }
+    }
 
-        expression := p.parseInline()
-        if expression != nil {
-            inlineExpressions = append(inlineExpressions, expression)
+    return args
+}
+
+func (p *Parser) parseArgument() ast.Argument {
+    arg := ast.Argument{}
+
+    t := p.currentToken()
+    var ok bool
+    if p.peekToken().Type == token.LANGLE {
+        p.readToken() 
+        t, ok = p.expect(token.TEXT)
+        if !ok {
+            return ast.Argument{}
+        }
+        arg.Name = t.Literal
+
+        t, ok = p.expect(token.RANGLE)
+        if !ok {
+            return ast.Argument{}
         }
     }
     
-    p.addError("Tag is missing closing brace")
-    return nil
+    // values
+    for p.peekToken().Type != token.RBRACE {
+        if p.currentToken().Type == token.EOF {
+            p.addError(errors.UNCLOSED_TAG)
+            return ast.Argument{}
+        }
+
+        expression := p.parseExpression()
+        if expression != nil {
+            arg.Values = append(arg.Values, expression)
+        }
+    }
+
+    _, ok = p.expect(token.RBRACE)
+    if !ok {
+        return ast.Argument{}
+    }
+
+    return arg
 }
+

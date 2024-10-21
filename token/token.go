@@ -14,11 +14,7 @@ const (
     RBRACE = "RBRACE"
     LANGLE = "LANGLE"
     RANGLE = "RANGLE"
-
-    // ...
     HASHTAG = "HASHTAG"
-    SPACE = "SPACE"
-    BACKSLASH = "BACKSLASH"
 )
 
 type Token struct {
@@ -29,14 +25,12 @@ type Token struct {
 var Characters = map[rune]Token{
     0: {EOF, ""},
     '@': {TAG, "@"},
-    '\n': {LINEBREAK, "\n"},
+    '\n': {LINEBREAK, "\\n"},
     '{': {LBRACE, "{"},
     '}': {RBRACE, "}"},
     '<': {LANGLE, "<"},
     '>': {RANGLE, ">"},
     '#': {HASHTAG, "#"},
-    ' ': {SPACE, " "},
-    '\\': {BACKSLASH, "\\"},
 }
 
 func New(literal any) Token {

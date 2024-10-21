@@ -2,114 +2,173 @@ package evaluator
 
 import (
 	"fmt"
-	"proxima/ast"
-	"proxima/components"
-	"proxima/error"
-	"proxima/object"
-	"strings"
+    "strings"
+    "bytes"
+    "os/exec"
+
+    "proxima/config"
+    "proxima/ast"
+    "proxima/errors"
 )
 
 type Evaluator struct {
-    Errors []error.Error
-    File string
+    expressions []ast.Expression
+    components map[string]Component
+
+    file string
+    currentLine int
+
+    evalCommands map[ProgrammingLanguage][]string
 }
 
 // PUBLIC
-func New(file string) *Evaluator {
-    return &Evaluator{File: file}
-}
-func (e *Evaluator) Eval(node ast.Node) string {
-    switch node := node.(type) {
-    case *ast.Document:
-        return e.evalDocument(node)
-    case *ast.Paragraph:
-        return e.evalParagraph(node)
-    case *ast.Text:
-        return e.evalText(node)
-    case *ast.Tag:
-        return e.evalTag(node)
-    default:
-        e.addError(fmt.Sprintf("unknown node type: %T", node), node.Line())
-        return ""
+func New(expressions []ast.Expression, file string, config *config.Config) (*Evaluator, error) {
+    // load components
+    components, err := loadComponents(expressions, config)
+    if err != nil {
+        return nil, err
     }
+
+    evalCommands := map[ProgrammingLanguage][]string{
+        PYTHON: strings.Split(*config.Evaluator.PythonCmd, " "),
+        JAVASCRIPT: strings.Split(*config.Evaluator.JavaScriptCmd, " "),
+        LUA: strings.Split(*config.Evaluator.LuaCmd, " "),
+        RUBY: strings.Split(*config.Evaluator.RubyCmd, " "),
+    }
+
+    return &Evaluator{
+        expressions,
+        components,
+        file,
+        0,
+        evalCommands,
+    }, nil
 }
 
-// ERRORS
-func (e *Evaluator) addError(msg string, line int) {
-    e.Errors = append(e.Errors, error.Error{
-        Stage: "evaluator",
-        Message: msg,
-        Line: line,
-        File: e.File,
-    })
+func (e *Evaluator) Evaluate() (string, error) {
+    content := ""
+    for _, expression := range e.expressions {
+        result, err := e.evaluateExpression(expression)
+        if err != nil {
+            return "", err
+        }
+        content += result
+    }
+
+    return content, nil
 }
 
 // EVALUATION
-func (e *Evaluator) evalDocument(document *ast.Document) string {
-    var result string
-
-    for _, paragraph := range document.Paragraphs {
-        result += e.Eval(paragraph)
+func (e *Evaluator) evaluateExpression(expression ast.Expression) (string, error) {
+    e.currentLine = expression.Line()
+    switch expression := expression.(type) {
+    case *ast.Text:
+        return expression.Value, nil
+    case *ast.Tag:
+        return e.evaluateTag(expression)
+    default:
+        return "", nil
     }
-
-    return result
-}
-func (e *Evaluator) evalParagraph(paragraph *ast.Paragraph) string {
-    var result string
-
-    _, isText := paragraph.Content[0].(*ast.Text)
-    _, isTag := paragraph.Content[0].(*ast.Tag)
-    isBracketedTag := false
-    if isTag {
-        isBracketedTag = true
-    }
-
-    for _, inline := range paragraph.Content {
-        result += e.Eval(inline)
-    }
-
-    if (isText || isBracketedTag) && !strings.HasPrefix(result, "<") {
-        result = "<p>\n\t" + result + "\n</p>"
-    }
-
-    return result + "\n"
 }
 
-func (e *Evaluator) evalText(text *ast.Text) string {
-    return text.Content
-}
+func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {
+    component := e.components[tag.Name]
 
-func (e *Evaluator) evalTag(tag *ast.Tag) string {
-    function := getTagFuntion(tag.Name)
-    if function == nil {
-        e.addError("unknown tag: " + tag.Name, tag.Line())
-        return ""
-    }
-
-    var evaluatedArguments []string
-    for _, argument := range tag.Arguments {
-        var evaluatedArgument string
-        for _, inline := range argument {
-            evaluatedArgument += e.Eval(inline)
+    // evaluate args
+    args := make(map[string]string, len(tag.Args))
+    for i, arg := range tag.Args {
+        evaluatedArg := ""
+        for _, value := range arg.Values {
+            result, err := e.evaluateExpression(value)
+            if err != nil {
+                return "", err
+            }
+            evaluatedArg += result
         }
-        evaluatedArguments = append(evaluatedArguments, evaluatedArgument)
+        name := arg.Name
+        if name == "" {
+            name = fmt.Sprintf("_unnamed_%d", i)
+        }
+        args[name] = evaluatedArg
     }
 
-    result := function(evaluatedArguments)
-    if result.Type() == object.ERROR_OBJ {
-        e.addError(result.Inspect(), tag.Line())
-        return ""
+    // format args
+    formattedArgs := formatArgs(component.language, args)
+
+    // get script
+    script := getScript(component.language, component, formattedArgs)
+
+    // execute script
+    command := e.evalCommands[component.language]
+
+    first := command[0]
+    rest := command[1:]
+    rest = append(rest, script)
+
+    cmd := exec.Command(first, rest...)
+
+    var out bytes.Buffer
+    var stderr bytes.Buffer
+    cmd.Stdout = &out
+    cmd.Stderr = &stderr
+
+    // Execute the command
+    err := cmd.Run()
+    if err != nil {
+        return "", errors.NewEvalError(errors.ERROR_EXECUTING_SCRIPT, e.file, e.currentLine, component.name, stderr.String())
     }
 
-    return result.Inspect()
+    // remove the trailing newline given by the prints
+    return strings.TrimSuffix(out.String(), "\n"), nil
 }
 
-func getTagFuntion(key string) components.ComponentFunction {
-    if components.Components != nil {
-        if function, ok := components.Components[key]; ok {
-            return function
+func getScript(language ProgrammingLanguage, component Component, args string) string {
+    switch language {
+    case PYTHON:
+        return fmt.Sprintf("%s\nprint(%s(%s))", component.content, component.name, args)
+    case JAVASCRIPT:
+        return fmt.Sprintf("%s\nconsole.log(%s({%s}));", component.content, component.name, args)
+    case LUA:
+        return fmt.Sprintf("%s\nprint(%s(%s))", component.content, component.name, args)
+    case RUBY:
+        return fmt.Sprintf("%s\nputs %s(%s)", component.content, component.name, args)
+    }
+
+    return ""
+}
+
+func formatArgs(language ProgrammingLanguage, args map[string]string) string {
+    formattedArgs := make([]string, len(args))
+    for name, value := range args {
+        if value == "" {
+            continue
+        }
+
+        value = strings.ReplaceAll(value, "'", "\\'")
+        if strings.HasPrefix(name, "_unnamed_") {
+            formattedArgs = append(formattedArgs, fmt.Sprintf("'%s'", value))
+            continue
+        }
+
+        switch language {
+        case PYTHON:
+            formattedArgs = append(formattedArgs, fmt.Sprintf("%s='%s'", name, value))
+        case JAVASCRIPT:
+            formattedArgs = append(formattedArgs, fmt.Sprintf("%s: '%s'", name, value))
+        case LUA:
+            formattedArgs = append(formattedArgs, fmt.Sprintf("%s = '%s'", name, value))
+        case RUBY:
+            formattedArgs = append(formattedArgs, fmt.Sprintf("%s: '%s'", name, value))
         }
     }
 
-    return nil
+    // remove all empty strings
+    for i := 0; i < len(formattedArgs); i++ {
+        if formattedArgs[i] == "" {
+            formattedArgs = append(formattedArgs[:i], formattedArgs[i+1:]...)
+            i--
+        }
+    }
+
+    return strings.Join(formattedArgs, ", ")
 }

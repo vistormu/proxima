@@ -2,111 +2,90 @@ package commands
 
 import (
     "fmt"
+    "proxima/errors"
 )
 
-func help(args []string) {
+func help(args []string) error {
+    if len(args) > 1 {
+        return errors.NewCliError(errors.WRONG_N_ARGS, 1, len(args))
+    }
+
     if len(args) == 0 {
         helpBasic()
-        return
+        return nil
     }
+
     switch args[0] {
-    case "generate":
-        helpGenerate()
+    case "init":
+        helpInit()
+    case "make":
+        helpMake()
     case "version":
         helpVersion()
-    case "watch":
-        helpWatch()
+    case "help":
+        helpHelp()
     default:
-        helpError()
+        return errors.NewCliError(errors.UNKNOWN_COMMAND, args[0])
     }
-}
 
-func helpError() {
-    msg := `Error:
-
-    Command not found
-
-Use "proxima help" for more information
-`
-    fmt.Println(msg)
+    return nil
 }
 
 func helpBasic() {
-    msg := `Usage:
+    msg := "\x1b[32musage\x1b[0m:\n" +
+    "    proxima <command> [arguments]\n\n" +
+    "\x1b[32mcommands\x1b[0m:\n" +
+    "    \x1b[35minit\x1b[0m       Create a new proxima project\n" +
+    "    \x1b[35mmake\x1b[0m       Generates the specified file from a .prox file\n" +
+    "    \x1b[35mversion\x1b[0m    Display the current version\n\n" +
+    "For more information on a specific command, use 'proxima help <command>'."
 
-    proxima <command> [arguments]
-
-Commands:
-    
-    generate   Generate a new HTML file from a .prox file
-    version    Display the current version
-    watch      Watch a .prox file for changes and generate the corresponding HTML file
-
-Use "proxima help <command>" for more information about a command.
-`
-    fmt.Println(msg)
+    fmt.Println("\x1b[35mproxima\x1b[0m " + string(VERSION) + "\n\n" + msg)
 }
 
-func helpGenerate() {
-    msg := `Usage:
-
-    proxima generate [-c <components_path>] [-r] [arguments]
-
-Description:
-
-    Generate a new HTML file from a .prox file
-
-Flags:
-
-    -c <components_path>    Path to the components directory. By default, the components directory is "./components"
-
-    -r                      Generate HTML files from all .prox files recursively
-
-Arguments:
-    
-    file1 dir1 [file2 dir2] List of .prox files and directories to generate HTML files from
-
-Examples:
-    
-    proxima generate -c ./components file1.prox file2.prox
-    proxima generate -r dir1 dir2
-    proxima generate dir1
-    proxima generate file1.prox dir1
-`
+func helpMake() {
+    msg := "\x1b[35mproxima\x1b[0m make\n\n" +
+    "\x1b[32musage\x1b[0m:\n" +
+    "    proxima make <file> -c <components_path> -o <output_path>\n\n" +
+    "\x1b[32mdescription\x1b[0m:\n" +
+    "    generate the specified new file from a .prox file\n\n" +
+    "\x1b[32mflags\x1b[0m:\n" +
+    "    -c <components_path>    path to the components directory. by default, the components directory is \"./components\"\n" +
+    "    -o <output_path>        path to the output file\n"
 
     fmt.Println(msg)
 }
 
 func helpVersion() {
-    msg := `Usage:
+    msg := "\x1b[35mproxima\x1b[0m version\n\n" +
+    "\x1b[32musage\x1b[0m:\n" +
+    "    proxima version\n\n" +
+    "\x1b[32mdescription\x1b[0m:\n" +
+    "    display the current version of proxima"
 
-    proxima version
-
-Description:
-
-    Display the current version
-`
-    
     fmt.Println(msg)
 }
 
-func helpWatch() {
-    msg := `Usage:
+func helpHelp() {
+    msg := "\x1b[35mproxima\x1b[0m help\n\n" +
+    "\x1b[32musage\x1b[0m:\n" +
+    "    proxima help [command]\n\n" +
+    "\x1b[32mdescription\x1b[0m:\n" +
+    "    display help information for proxima\n\n" +
+    "why are you even reading this?"
 
-    proxima watch [arguments]
+    fmt.Println(msg)
+}
 
-Description:
-
-    Watch a .prox file for changes and generate the corresponding HTML file
-
-Arguments:
-    
-    file Watch a single .prox file
-
-Examples:
-
-    proxima watch file.prox
-`
+func helpInit() {
+    msg := "\x1b[35mproxima\x1b[0m init\n\n" +
+    "\x1b[32musage\x1b[0m:\n" +
+    "    proxima init\n\n" +
+    "\x1b[32mdescription\x1b[0m:\n" +
+    "    create a new proxima project. it will create a new directory with the following structure:\n" +
+    "        - components/      the default directory for creating new components\n" +
+    "        - config.toml      the default configuration file\n" +
+    "        - main.prox        an example proxima file\n"
 
     fmt.Println(msg)
 }

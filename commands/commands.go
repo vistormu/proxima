@@ -1,32 +1,40 @@
 package commands
 
-const (
-    MAIN_EXT = ".prox"
-    VERSION = "0.2.0"
+import (
+    "fmt"
+    "proxima/errors"
 )
 
+const (
+    MAIN_EXT = ".prox"
+    VERSION = "0.4.0"
+)
+
+type CommnadFunc func(args []string) error
+var commands = map[string]CommnadFunc{
+    "init": init_,
+    "make": make_,
+    "help": help,
+    "version": version,
+}
+
 func Execute(args []string) {
+    err := execute(args)
+    if err != nil {
+        fmt.Println(err.Error())
+    }
+}
+
+func execute(args []string) error {
     if len(args) < 2 {
-        helpError()
+        return errors.NewCliError(errors.WRONG_N_ARGS, "at least one", len(args)-1)
     }
     args = args[1:]
 
-    switch args[0] {
-    case "version":
-        version()
-    case "generate":
-        err := generate(args[1:])
-        if err != nil {
-            exitOnError(err.Error())
-        }
-    case "watch":
-        err := watch(args[1:])
-        if err != nil {
-            exitOnError(err.Error())
-        }
-    case "help":
-        help(args[1:])
-    default:
-        helpError()
+    command, ok := commands[args[0]]
+    if !ok {
+        return errors.NewCliError(errors.UNKNOWN_COMMAND, args[0])
     }
+
+    return command(args[1:])
 }

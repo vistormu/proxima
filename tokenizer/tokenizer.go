@@ -32,18 +32,46 @@ func (t *Tokenizer) token() token.Token {
     // read char
     char, peekChar := t.readChar()
 
-    // skip whitespace
-    for isWhitespace(char) {
-        char, peekChar = t.readChar()
+    // skip comments
+    if char == '#' {
+        for char != '\n' {
+            char, peekChar = t.readChar()
+        }
     }
 
-    // text
-    if isText(char) {
+    // special characters
+    tok, ok := token.Characters[char]
+    if ok {
+        // keep white space after }
+        if char == '}' && peekChar == ' ' {
+            return tok
+        }
+
+        // skip white space after special characters
+        for isWhiteSpace(peekChar) {
+            char, peekChar = t.readChar()
+        }
+
+        return tok
+    }
+
+    // text and escape characters
+    if isText(char) || char == '\\' {
         literal := ""
-        for isText(char) {
+        for isText(char) || char == '\\' {
+            // escape character
+            if char == '\\' {
+                literal += string(peekChar)
+                char, peekChar = t.readChar()
+                char, peekChar = t.readChar()
+
+                continue
+            }
+
+            // text
             literal += string(char)
 
-            if !isText(peekChar) {
+            if !isText(peekChar) && peekChar != '\\' {
                 break
             }
 
@@ -72,10 +100,10 @@ func (t *Tokenizer) readChar() (rune, rune) {
     return currentChar, peekChar
 }
 
-func isWhitespace(char rune) bool {
-    return char == '\t' || char == '\r'
+func isWhiteSpace(char rune) bool {
+    return char == '\t' || char == '\r' || char == ' '
 }
 func isText(char rune) bool {
     _, ok := token.Characters[char]
-    return (!ok || char == ' ') && !isWhitespace(char)
+    return !ok && !isWhiteSpace(char) || char == ' '
 }
