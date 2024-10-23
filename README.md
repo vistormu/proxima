@@ -58,7 +58,7 @@ This is a proxima example, and the passed argument is: 2.
 ```
 
 ## Configuring proxima
-_proxima_ can be configured by using the `proxima.toml` file. Here, you can change the line break values, the language runtimes, specify the components directory, and wether the components should use moduled (e.g. if true, a component defined under "components/module/component.py" is then called in a .prox file as "@module.component").
+_proxima_ can be configured by using the `proxima.toml` file. Here, you can change the line break values, the language runtimes, specify the components directory, and wether the components should use modules (e.g. if true, a component defined under "components/module/component.py" is then called in a .prox file as "@module.component").
 
 ```toml
 [parser]
