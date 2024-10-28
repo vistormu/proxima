@@ -5,6 +5,7 @@ import (
     "strings"
     "bytes"
     "os/exec"
+    "sort"
 
     "proxima/config"
     "proxima/ast"
@@ -138,21 +139,54 @@ func getScript(language ProgrammingLanguage, component Component, args string) s
 }
 
 func formatArgs(language ProgrammingLanguage, args map[string]string) string {
-    formattedArgs := make([]string, len(args))
-    for name, value := range args {
+    // Convert map to a slice of anonymous structs to maintain order after sorting
+    sortedArgs := make([]struct {
+        Key   string
+        Value string
+    }, 0, len(args))
+
+    for key, value := range args {
+        sortedArgs = append(sortedArgs, struct {
+            Key   string
+            Value string
+        }{Key: key, Value: value})
+    }
+
+    // Sort the slice by Key
+    sort.Slice(sortedArgs, func(i, j int) bool {
+        return sortedArgs[i].Key < sortedArgs[j].Key
+    })
+
+    // Initialize formattedArgs slice for formatted strings
+    formattedArgs := make([]string, 0, len(args))
+
+    // Iterate over the sorted slice
+    for _, arg := range sortedArgs {
+        name := arg.Key
+        value := arg.Value
         if value == "" {
             continue
         }
 
         value = strings.ReplaceAll(value, "'", "\\'")
         if strings.HasPrefix(name, "_unnamed_") {
-            formattedArgs = append(formattedArgs, fmt.Sprintf("'%s'", value))
+            // add raw string to the formatted arguments // TODO: check if this is correct
+            switch language {
+            case PYTHON:
+                formattedArgs = append(formattedArgs, fmt.Sprintf("r'%s'", value))
+            case LUA:
+                formattedArgs = append(formattedArgs, fmt.Sprintf("'%s'", value))
+            case JAVASCRIPT:
+                formattedArgs = append(formattedArgs, fmt.Sprintf("'%s'", value))
+            case RUBY:
+                formattedArgs = append(formattedArgs, fmt.Sprintf("'%s'", value))
+            }
             continue
         }
 
         switch language {
         case PYTHON:
-            formattedArgs = append(formattedArgs, fmt.Sprintf("%s='%s'", name, value))
+            formattedArgs = append(formattedArgs, fmt.Sprintf("%s=r'%s'", name, value))
         case JAVASCRIPT:
             formattedArgs = append(formattedArgs, fmt.Sprintf("%s: '%s'", name, value))
         case LUA:
@@ -162,13 +196,6 @@ func formatArgs(language ProgrammingLanguage, args map[string]string) string {
         }
     }
 
-    // remove all empty strings
-    for i := 0; i < len(formattedArgs); i++ {
-        if formattedArgs[i] == "" {
-            formattedArgs = append(formattedArgs[:i], formattedArgs[i+1:]...)
-            i--
-        }
-    }
-
+    // Join the formatted arguments into a single string
     return strings.Join(formattedArgs, ", ")
 }
