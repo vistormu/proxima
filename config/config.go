@@ -1,6 +1,7 @@
 package config
 
 import (
+    "os"
     "github.com/BurntSushi/toml"
 )
 
@@ -13,6 +14,9 @@ python_cmd = "python3 -c"
 javascript_cmd = "node -e"
 lua_cmd = "lua -e"
 ruby_cmd = "ruby -e"
+# text_replacement = [
+#     { from = "", to = "" },
+# ]
 
 [components]
 components_dir = "./components/"
@@ -21,20 +25,26 @@ exclude = []
 `
 
 type ParserConfig struct {
-    LineBreakValue *string `toml:"line_break_value"`
-    DoubleLineBreakValue *string `toml:"double_line_break_value"`
+    LineBreakValue string `toml:"line_break_value"`
+    DoubleLineBreakValue string `toml:"double_line_break_value"`
+}
+
+type TextReplacement struct {
+    From string `toml:"from"`
+    To string `toml:"to"`
 }
 
 type EvaluatorConfig struct {
-    PythonCmd *string `toml:"python_cmd"`
-    JavaScriptCmd *string `toml:"javascript_cmd"`
-    LuaCmd *string `toml:"lua_cmd"`
-    RubyCmd *string `toml:"ruby_cmd"`
+    PythonCmd string `toml:"python_cmd"`
+    JavaScriptCmd string `toml:"javascript_cmd"`
+    LuaCmd string `toml:"lua_cmd"`
+    RubyCmd string `toml:"ruby_cmd"`
+    TextReplacements []TextReplacement `toml:"text_replacement"`
 }
 
 type ComponentsConfig struct {
-    ComponentsDir *string `toml:"components_dir"`
-    UseModules *bool `toml:"use_modules"`
+    ComponentsDir string `toml:"components_dir"`
+    UseModules bool `toml:"use_modules"`
     Exclude []string `toml:"exclude"`
 }
 
@@ -44,58 +54,34 @@ type Config struct {
     Components ComponentsConfig `toml:"components"`
 }
 
-func (c *Config) setDefaults() {
-    // parser
-    if c.Parser.LineBreakValue == nil {
-        defaultLineBreakValue := "\n"
-        c.Parser.LineBreakValue = &defaultLineBreakValue
-    }
-    if c.Parser.DoubleLineBreakValue == nil {
-        defaultDoubleLineBreakValue := "\n\n"
-        c.Parser.DoubleLineBreakValue = &defaultDoubleLineBreakValue
-    }
-    
-    // evaluator
-    if c.Evaluator.PythonCmd == nil {
-        defaultPythonCmd := "python3 -c"
-        c.Evaluator.PythonCmd = &defaultPythonCmd
-    }
-    if c.Evaluator.JavaScriptCmd == nil {
-        defaultJavaScriptCmd := "node -e"
-        c.Evaluator.JavaScriptCmd = &defaultJavaScriptCmd
-    }
-    if c.Evaluator.LuaCmd == nil {
-        defaultLuaCmd := "lua -e"
-        c.Evaluator.LuaCmd = &defaultLuaCmd
-    }
-    if c.Evaluator.RubyCmd == nil {
-        defaultRubyCmd := "ruby -e"
-        c.Evaluator.RubyCmd = &defaultRubyCmd
-    }
-
-    // components
-    if c.Components.ComponentsDir == nil {
-        defaultComponentsDir := "./components/"
-        c.Components.ComponentsDir = &defaultComponentsDir
-    }
-    if c.Components.UseModules == nil {
-        defaultUseModules := false
-        c.Components.UseModules = &defaultUseModules
-    }
-    if c.Components.Exclude == nil {
-        defaultExclude := []string{}
-        c.Components.Exclude = defaultExclude
+func defaultConfig() *Config {
+    return &Config{
+        Parser: ParserConfig{
+            LineBreakValue: "\n",
+            DoubleLineBreakValue: "\n\n",
+        },
+        Evaluator: EvaluatorConfig{
+            PythonCmd: "python3 -c",
+            JavaScriptCmd: "node -e",
+            LuaCmd: "lua -e",
+            RubyCmd: "ruby -e",
+            TextReplacements: []TextReplacement{},
+        },
+        Components: ComponentsConfig{
+            ComponentsDir: "./components/",
+            UseModules: false,
+            Exclude: []string{},
+        },
     }
 }
 
 func LoadConfig() (*Config, error) {
-    var config Config
-    _, err := toml.DecodeFile("proxima.toml", &config)
-    if err != nil {
-        return nil, err
+    config := defaultConfig()
+    
+    if _, err := os.Stat("proxima.toml"); os.IsNotExist(err) {
+        return config, nil
     }
 
-    config.setDefaults()
-
-    return &config, err
+    _, err := toml.DecodeFile("proxima.toml", config)
+    return config, err
 }

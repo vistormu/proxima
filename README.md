@@ -1,7 +1,7 @@
 # proxima: A Markup-Language-Wrapper Markup Language
 
 <p align="center">
-    <a href="https://github.com/vistormu/adam_simulator">
+    <a href="https://github.com/vistormu/proxima">
         <img src="/assets/proxima_logo.svg">
     </a>
 </p>
@@ -57,8 +57,24 @@ the output file should look like this:
 This is a proxima example, and the passed argument is: 2.
 ```
 
+Multiple arguments can be passed to the component by enclosing them in curly braces.
+
+```proxima
+# main.prox
+
+This is a proxima example, and @component_with_two_args{one}{two}.
+```
+
+Also, you can pass the arguments by name by using the following syntax:
+
+```proxima
+# main.prox
+
+This is a proxima example, and @component_with_named_args{<first> one}{<second> two}.
+```
+
 ## Configuring proxima
-_proxima_ can be configured by using the `proxima.toml` file. Here, you can change the line break values, the language runtimes, specify the components directory, and wether the components should use modules (e.g. if true, a component defined under "components/module/component.py" is then called in a .prox file as "@module.component").
+_proxima_ can be configured by using the `proxima.toml` file. Here is the default configuration:
 
 ```toml
 [parser]
@@ -70,6 +86,9 @@ python_cmd = "python3 -c"
 javascript_cmd = "node -e"
 lua_cmd = "lua -e"
 ruby_cmd = "ruby -e"
+# text_replacement = [
+#    {from = "_", to = "\\_"},
+# ]
 
 [components]
 components_dir = "./components/"
@@ -77,26 +96,29 @@ use_modules = false
 exclude = []
 ```
 
+You can change the line break values or change the language runtimes. Also, you can write text replacements that will be executed before the final output is generated. In this way, you don't have to escape characters that are not supported by the target markup language. Also, you can specify the components directory, and wether the components should use modules (e.g. if true, a component defined under "components/module/component.py" is then called in a .prox file as "@module.component"). Finally, you can exclude components from being loaded.
+
 ## Installation
-Download the Proxima binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
+Download the _proxima_ binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
 
-Then, rename it to `proxima`:
+Move it to the system's binaries
 
 ```bash
-mv proxima-<ARCH> proxima
+mv proxima-<ARCH> /usr/local/bin/proxima
 ```
 
-Give it execution privileges:
+and give it execution privileges:
 
 ```bash
-chmod +x proxima
-```
-
-And move it to the system's binaries:
-
-```bash
-mv proxima /usr/local/bin/
+chmod +x /usr/local/bin/proxima
 ```
 
 ## Tooling
-Proxima syntax highlighting is available [here](https://github.com/vistormu/tree-sitter-proxima.git), and the LSP is under development.
+_proxima_ syntax highlighting is available [here](https://github.com/vistormu/tree-sitter-proxima.git).
+
+## Future plans
+The main goal of _proxima_ is to be a simple, high-configurable, and extensible markup language that can transpile to any other markup language. The following features are planned for the future:
+
+- [ ] LSP
+- [ ] More configuration options
+- [ ] Documentation

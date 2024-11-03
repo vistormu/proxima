@@ -30,8 +30,8 @@ func New(tokens []token.Token, file string, config *config.Config) *Parser {
         len(tokens),
         1,
         file,
-        *config.Parser.LineBreakValue,
-        *config.Parser.DoubleLineBreakValue,
+        config.Parser.LineBreakValue,
+        config.Parser.DoubleLineBreakValue,
         []error{},
     }
 }

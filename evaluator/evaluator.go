@@ -20,6 +20,7 @@ type Evaluator struct {
     currentLine int
 
     evalCommands map[ProgrammingLanguage][]string
+    textReplacements map[string]string
 }
 
 // PUBLIC
@@ -31,10 +32,15 @@ func New(expressions []ast.Expression, file string, config *config.Config) (*Eva
     }
 
     evalCommands := map[ProgrammingLanguage][]string{
-        PYTHON: strings.Split(*config.Evaluator.PythonCmd, " "),
-        JAVASCRIPT: strings.Split(*config.Evaluator.JavaScriptCmd, " "),
-        LUA: strings.Split(*config.Evaluator.LuaCmd, " "),
-        RUBY: strings.Split(*config.Evaluator.RubyCmd, " "),
+        PYTHON: strings.Split(config.Evaluator.PythonCmd, " "),
+        JAVASCRIPT: strings.Split(config.Evaluator.JavaScriptCmd, " "),
+        LUA: strings.Split(config.Evaluator.LuaCmd, " "),
+        RUBY: strings.Split(config.Evaluator.RubyCmd, " "),
+    }
+
+    textReplacements := make(map[string]string, len(config.Evaluator.TextReplacements))
+    for _, replacement := range config.Evaluator.TextReplacements {
+        textReplacements[replacement.From] = replacement.To
     }
 
     return &Evaluator{
@@ -43,6 +49,7 @@ func New(expressions []ast.Expression, file string, config *config.Config) (*Eva
         file,
         0,
         evalCommands,
+        textReplacements,
     }, nil
 }
 
@@ -64,12 +71,24 @@ func (e *Evaluator) evaluateExpression(expression ast.Expression) (string, error
     e.currentLine = expression.Line()
     switch expression := expression.(type) {
     case *ast.Text:
-        return expression.Value, nil
+        return e.evaluateText(expression)
     case *ast.Tag:
         return e.evaluateTag(expression)
     default:
         return "", nil
     }
+}
+
+func (e *Evaluator) evaluateText(text *ast.Text) (string, error) {
+    textValue := text.Value
+    for from, to := range e.textReplacements {
+        if !strings.Contains(textValue, from) {
+            continue
+        }
+        textValue = strings.ReplaceAll(textValue, from, to)
+    }
+
+    return textValue, nil
 }
 
 func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {

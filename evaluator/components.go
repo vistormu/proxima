@@ -110,8 +110,8 @@ func isDir(path string) bool {
 
 func getComponents(uniqueTags map[string]bool, config *config.Config) (map[string]Component, error) {
     // config values
-    componentsDir := *config.Components.ComponentsDir
-    useModules := *config.Components.UseModules
+    componentsDir := config.Components.ComponentsDir
+    useModules := config.Components.UseModules
     excluded := map[string]bool{}
     for _, exclude := range config.Components.Exclude {
         if isDir(exclude) {
