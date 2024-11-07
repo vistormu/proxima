@@ -5,7 +5,6 @@ import (
     "bytes"
 	"strings"
     "fmt"
-    "sort"
 
     "proxima/config"
 )
@@ -26,9 +25,9 @@ var unnamedArgTemplates = map[ProgrammingLanguage]string{
 
 var namedArgTemplates = map[ProgrammingLanguage]string{
     PYTHON: "%s=r'%s'",
-    JAVASCRIPT: "%s='%s'",
-    LUA: "%s='%s'",
-    RUBY: "%s='%s'",
+    JAVASCRIPT: "%s: '%s'",
+    LUA: "%s = '%s'",
+    RUBY: "%s: '%s'",
 }
 
 type Interpreter struct {
@@ -48,14 +47,10 @@ func NewInterpreter(config *config.Config) Interpreter {
     }
 }
 
-func (i *Interpreter) Evaluate(args map[string]string, component Component) (string, error) {
-    // format args
+func (i *Interpreter) Evaluate(args []struct{Name string; Value string}, component Component) (string, error) {
     formattedArgs := formatArgs(component.language, args)
-
-    // get script
     script := fmt.Sprintf(templates[component.language], component.content, component.name, formattedArgs)
 
-    // execute script
     // execute script
     command := strings.Split(i.languageToCommand[component.language], " ")
 
@@ -70,54 +65,28 @@ func (i *Interpreter) Evaluate(args map[string]string, component Component) (str
     cmd.Stdout = &out
     cmd.Stderr = &stderr
 
-    // Execute the command
     err := cmd.Run()
     if err != nil {
         return "", fmt.Errorf(stderr.String())
     }
 
-    // remove the trailing newline given by the prints
     return strings.TrimSuffix(out.String(), "\n"), nil
 }
 
-func formatArgs(language ProgrammingLanguage, args map[string]string) string {
-    // Convert map to a slice of anonymous structs to maintain order after sorting
-    sortedArgs := make([]struct {
-        Key   string
-        Value string
-    }, 0, len(args))
-
-    for key, value := range args {
-        sortedArgs = append(sortedArgs, struct {
-            Key   string
-            Value string
-        }{Key: key, Value: value})
-    }
-
-    // Sort the slice by Key
-    sort.Slice(sortedArgs, func(i, j int) bool {
-        return sortedArgs[i].Key < sortedArgs[j].Key
-    })
-
-    // Initialize formattedArgs slice for formatted strings
+func formatArgs(language ProgrammingLanguage, args []struct{Name string; Value string}) string {
     formattedArgs := make([]string, 0, len(args))
-
-    // Iterate over the sorted slice
-    for _, arg := range sortedArgs {
-        name := arg.Key
-        value := arg.Value
-        if value == "" {
+    for _, arg := range args {
+        if arg.Value == "" {
             continue
         }
 
-        value = strings.ReplaceAll(value, "'", "\\'")
-        if strings.HasPrefix(name, "_unnamed_") {
+        value := strings.ReplaceAll(arg.Value, "'", "\\'")
+        if strings.HasPrefix(arg.Name, "_unnamed_") {
             formattedArgs = append(formattedArgs, fmt.Sprintf(unnamedArgTemplates[language], value))
         } else {
-            formattedArgs = append(formattedArgs, fmt.Sprintf(namedArgTemplates[language], name, value))
+            formattedArgs = append(formattedArgs, fmt.Sprintf(namedArgTemplates[language], arg.Name, value))
         }
     }
 
-    // Join the formatted arguments into a single string
     return strings.Join(formattedArgs, ", ")
 }

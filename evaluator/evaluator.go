@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
     "strings"
+    "sort"
 
     "proxima/config"
     "proxima/ast"
@@ -18,7 +19,7 @@ type Evaluator struct {
 
     textReplacements map[string]string
 
-    Interpreter Interpreter
+    interp Interpreter
 }
 
 // PUBLIC
@@ -39,7 +40,7 @@ func New(expressions []ast.Expression, file string, config *config.Config) (*Eva
         components: components,
         file: file,
         textReplacements: textReplacements,
-        Interpreter: NewInterpreter(config),
+        interp: NewInterpreter(config),
     }, nil
 }
 
@@ -84,8 +85,11 @@ func (e *Evaluator) evaluateText(text *ast.Text) (string, error) {
 func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {
     component := e.components[tag.Name]
 
-    // evaluate args
-    args := make(map[string]string, len(tag.Args))
+    args := make([]struct{
+        Name string
+        Value string
+    }, 0, len(tag.Args))
+
     for i, arg := range tag.Args {
         evaluatedArg := ""
         for _, value := range arg.Values {
@@ -95,34 +99,30 @@ func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {
             }
             evaluatedArg += result
         }
+
         name := arg.Name
         if name == "" {
             name = fmt.Sprintf("_unnamed_%d", i)
         }
-        args[name] = evaluatedArg
+        
+        args = append(args, struct{
+            Name string
+            Value string
+        }{
+            Name: name,
+            Value: evaluatedArg,
+        })
     }
 
+    sort.Slice(args, func(i, j int) bool {
+        return args[i].Name < args[j].Name
+    })
+
     // interpret
-    output, err := e.Interpreter.Evaluate(args, component)
+    output, err := e.interp.Evaluate(args, component)
     if err != nil {
         return "", errors.NewEvalError(errors.ERROR_EXECUTING_SCRIPT, e.file, e.currentLine, component.name, err)
     }
 
     return output, nil
 }
-
-func getScript(language ProgrammingLanguage, component Component, args string) string {
-    switch language {
-    case PYTHON:
-        return fmt.Sprintf("%s\nprint(%s(%s))", component.content, component.name, args)
-    case JAVASCRIPT:
-        return fmt.Sprintf("%s\nconsole.log(%s({%s}));", component.content, component.name, args)
-    case LUA:
-        return fmt.Sprintf("%s\nprint(%s(%s))", component.content, component.name, args)
-    case RUBY:
-        return fmt.Sprintf("%s\nputs %s(%s)", component.content, component.name, args)
-    }
-
-    return ""
-}
-
