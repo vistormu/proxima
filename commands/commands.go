@@ -2,12 +2,13 @@ package commands
 
 import (
     "fmt"
+    "os"
     "proxima/errors"
 )
 
 const (
     MAIN_EXT = ".prox"
-    VERSION = "0.4.2"
+    VERSION = "0.4.3"
 )
 
 type CommnadFunc func(args []string) error
@@ -22,6 +23,7 @@ func Execute(args []string) {
     err := execute(args)
     if err != nil {
         fmt.Println(err.Error())
+        os.Exit(1)
     }
 }
 
