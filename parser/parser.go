@@ -152,6 +152,23 @@ func (p *Parser) parseExpression() ast.Expression {
     }
 }
 
+func (p *Parser) parseText() *ast.Text {
+    t := p.currentToken()
+    text := &ast.Text{Value: t.Literal, LineNumber: p.currentLine}
+
+    // check for line breaks
+    c1 := p.rawPeekToken(1).Type == token.LINEBREAK
+    c2 := p.rawPeekToken(2).Type == token.LINEBREAK
+
+    if c1 && c2 { // double line break
+        text.Value += p.doubleLineBreakValue
+    } else if c1 { // single line break
+        text.Value += p.lineBreakValue
+    }
+    
+    return text
+}
+
 func (p *Parser) parseTag() *ast.Tag {
     tag := &ast.Tag{LineNumber: p.currentLine}
 
@@ -229,6 +246,16 @@ func (p *Parser) parseArgument() ast.Argument {
         expression := p.parseExpression()
         if expression != nil {
             arg.Values = append(arg.Values, expression)
+        }
+
+        // check for line breaks
+        c1 := p.rawPeekToken(1).Type == token.LINEBREAK
+        c2 := p.rawPeekToken(2).Type == token.LINEBREAK
+
+        if c1 && c2 { // double line break
+            arg.Values = append(arg.Values, &ast.Text{Value: p.doubleLineBreakValue})
+        } else if c1 { // single line break
+            arg.Values = append(arg.Values, &ast.Text{Value: p.lineBreakValue})
         }
     }
 

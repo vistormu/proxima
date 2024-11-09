@@ -10,6 +10,12 @@ import (
     "proxima/errors"
 )
 
+const (
+    UNNAMED_ARG = "_unnamed"
+    LINEBREAK = "¡:lb:!"
+    SINGLE_QUOTE = "¡:sq:!"
+)
+
 type Evaluator struct {
     expressions []ast.Expression
     components map[string]Component
@@ -53,6 +59,9 @@ func (e *Evaluator) Evaluate() (string, error) {
         }
         content += result
     }
+
+    content = strings.ReplaceAll(content, LINEBREAK, "\n")
+    content = strings.ReplaceAll(content, SINGLE_QUOTE, "'")
 
     return content, nil
 }

@@ -80,7 +80,8 @@ func formatArgs(language ProgrammingLanguage, args []struct{Name string; Value s
             continue
         }
 
-        value := strings.ReplaceAll(arg.Value, "'", "\\'")
+        value := strings.ReplaceAll(arg.Value, "'", SINGLE_QUOTE)
+        value = strings.ReplaceAll(value, "\n", LINEBREAK)
         if strings.HasPrefix(arg.Name, "_unnamed_") {
             formattedArgs = append(formattedArgs, fmt.Sprintf(unnamedArgTemplates[language], value))
         } else {
