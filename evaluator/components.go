@@ -26,6 +26,7 @@ var languages = map[string]ProgrammingLanguage{
 
 type Component struct {
     name string
+    fullName string
     language ProgrammingLanguage
     content string
 }
@@ -178,6 +179,7 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
 
         components[name] = Component{
             name: componentName,
+            fullName: name,
             language: lang,
             content: string(content),
         }

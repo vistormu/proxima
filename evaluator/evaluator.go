@@ -12,8 +12,7 @@ import (
 
 const (
     UNNAMED_ARG = "_unnamed"
-    LINEBREAK = "¡:lb:!"
-    SINGLE_QUOTE = "¡:sq:!"
+    LINEBREAK = "¡:lb:!" // TMP
 )
 
 type Evaluator struct {
@@ -66,7 +65,6 @@ func (e *Evaluator) Evaluate() (string, error) {
     }
 
     content = strings.ReplaceAll(content, LINEBREAK, "\n")
-    content = strings.ReplaceAll(content, SINGLE_QUOTE, "'")
 
     return content, nil
 }
@@ -139,7 +137,7 @@ func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {
     // interpret
     output, err := e.interp.Evaluate(args, component)
     if err != nil {
-        return "", errors.NewEvalError(errors.ERROR_EXECUTING_SCRIPT, e.file, e.currentLine, component.name, err)
+        return "", errors.NewEvalError(errors.ERROR_EXECUTING_SCRIPT, e.file, e.currentLine, component.fullName, err)
     }
 
     return output, nil

@@ -72,7 +72,7 @@ type Config struct {
     Components ComponentsConfig `toml:"components"`
 }
 
-func defaultConfig() *Config {
+func GetDefaultConfig() *Config {
     return &Config{
         Parser: ParserConfig{
             LineBreakValue: "\n",
@@ -96,7 +96,7 @@ func defaultConfig() *Config {
 }
 
 func LoadConfig() (*Config, error) {
-    config := defaultConfig()
+    config := GetDefaultConfig()
     
     if _, err := os.Stat("proxima.toml"); os.IsNotExist(err) {
         return config, nil
