@@ -9,6 +9,15 @@ import (
     "proxima/config"
 )
 
+var commands = map[string][]string{
+    "python3": {"python3", "-c"},
+    "node": {"node", "-e"},
+    "lua": {"lua", "-e"},
+    "ruby": {"ruby", "-e"},
+    // "bun": {"bun", "-e"},
+    // "deno": {"deno", "eval"},
+}
+
 var templates = map[ProgrammingLanguage]string{
     PYTHON: "%s\nprint(%s(%s))\n",
     JAVASCRIPT: "%s\nconsole.log(%s(%s));\n",
@@ -31,15 +40,15 @@ var namedArgTemplates = map[ProgrammingLanguage]string{
 }
 
 type Interpreter struct {
-    languageToCommand map[ProgrammingLanguage]string
+    languageToCommand map[ProgrammingLanguage][]string
 }
 
 func NewInterpreter(config *config.Config) (*Interpreter, error) {
-    languageToCommand := map[ProgrammingLanguage]string {
-        PYTHON: config.Evaluator.PythonCmd,
-        JAVASCRIPT: config.Evaluator.JavaScriptCmd,
-        LUA: config.Evaluator.LuaCmd,
-        RUBY: config.Evaluator.RubyCmd,
+    languageToCommand := map[ProgrammingLanguage][]string {
+        PYTHON: commands[config.Runtimes.Python],
+        JAVASCRIPT: commands[config.Runtimes.JavaScript],
+        LUA: commands[config.Runtimes.Lua],
+        RUBY: commands[config.Runtimes.Ruby],
     }
 
     return &Interpreter{
@@ -52,13 +61,7 @@ func (i *Interpreter) Evaluate(args []struct{Name string; Value string}, compone
     script := fmt.Sprintf(templates[component.language], component.content, component.name, formattedArgs)
 
     // execute script
-    command := strings.Split(i.languageToCommand[component.language], " ")
-
-    first := command[0]
-    rest := command[1:]
-    rest = append(rest, script)
-
-    cmd := exec.Command(first, rest...)
+    cmd := exec.Command(i.languageToCommand[component.language][0], i.languageToCommand[component.language][1], script)
 
     var out bytes.Buffer
     var stderr bytes.Buffer

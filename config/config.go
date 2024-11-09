@@ -9,47 +9,65 @@ const DefaultConfig = `[parser]
 line_break_value = "\n"
 double_line_break_value = "\n\n"
 
+[runtimes]
+python = "python3"
+javascript = "node"
+lua = "lua"
+ruby = "ruby"
+
 [evaluator]
-python_cmd = "python3 -c"
-javascript_cmd = "node -e"
-lua_cmd = "lua -e"
-ruby_cmd = "ruby -e"
-# text_replacement = [
+# text_replacements = [
 #     { from = "", to = "" },
 # ]
 
 [components]
-components_dir = "./components/"
+path = "components/"
 use_modules = false
 exclude = []
 `
 
+// ======
+// PARSER
+// ======
 type ParserConfig struct {
     LineBreakValue string `toml:"line_break_value"`
     DoubleLineBreakValue string `toml:"double_line_break_value"`
 }
 
+// ========
+// RUNTIMES
+// ========
+type RuntimesConfig struct {
+    Python string `toml:"python"`
+    JavaScript string `toml:"javascript"`
+    Lua string `toml:"lua"`
+    Ruby string `toml:"ruby"`
+}
+
+// =========
+// EVALUATOR
+// =========
 type TextReplacement struct {
     From string `toml:"from"`
     To string `toml:"to"`
 }
 
 type EvaluatorConfig struct {
-    PythonCmd string `toml:"python_cmd"`
-    JavaScriptCmd string `toml:"javascript_cmd"`
-    LuaCmd string `toml:"lua_cmd"`
-    RubyCmd string `toml:"ruby_cmd"`
-    TextReplacements []TextReplacement `toml:"text_replacement"`
+    TextReplacements []TextReplacement `toml:"text_replacements"`
 }
 
+// ==========
+// COMPONENTS
+// ==========
 type ComponentsConfig struct {
-    ComponentsDir string `toml:"components_dir"`
+    Path string `toml:"path"`
     UseModules bool `toml:"use_modules"`
     Exclude []string `toml:"exclude"`
 }
 
 type Config struct {
     Parser ParserConfig `toml:"parser"`
+    Runtimes RuntimesConfig `toml:"runtimes"`
     Evaluator EvaluatorConfig `toml:"evaluator"`
     Components ComponentsConfig `toml:"components"`
 }
@@ -60,15 +78,17 @@ func defaultConfig() *Config {
             LineBreakValue: "\n",
             DoubleLineBreakValue: "\n\n",
         },
+        Runtimes: RuntimesConfig{
+            Python: "python3",
+            JavaScript: "node",
+            Lua: "lua",
+            Ruby: "ruby",
+        },
         Evaluator: EvaluatorConfig{
-            PythonCmd: "python3 -c",
-            JavaScriptCmd: "node -e",
-            LuaCmd: "lua -e",
-            RubyCmd: "ruby -e",
             TextReplacements: []TextReplacement{},
         },
         Components: ComponentsConfig{
-            ComponentsDir: "./components/",
+            Path: "components/",
             UseModules: false,
             Exclude: []string{},
         },
