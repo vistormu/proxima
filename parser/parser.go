@@ -147,8 +147,7 @@ func (p *Parser) parseExpression() ast.Expression {
         return nil
 
     default:
-        p.addError(errors.UNEXPECTED_TOKEN, t)
-        return nil
+        return &ast.Text{Value: t.Literal, LineNumber: p.currentLine}
     }
 }
 
