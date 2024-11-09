@@ -29,12 +29,14 @@ var templates = map[ProgrammingLanguage]string{
     PYTHON: "%s\nresult = %s(%s)\nprint('<<<START_RESULT>>>')\nprint(result)\nprint('<<<END_RESULT>>>')\n",
 }
 
-var unnamedArgTemplates = map[ProgrammingLanguage]string{
-    PYTHON: "r'''%s'''",
-}
-
-var namedArgTemplates = map[ProgrammingLanguage]string{
-    PYTHON: "%s=r'''%s'''",
+var argTemplates = map[ProgrammingLanguage]struct {
+    unnamed string
+    named   string
+}{
+    PYTHON: {
+        unnamed: "r'''%s'''",
+        named:   "%s=r'''%s'''",
+    },
 }
 
 type Interpreter struct {
@@ -52,12 +54,8 @@ func createTempPythonScript(scriptContent string) (string, error) {
     }
     defer tmpFile.Close()
 
-    _, err = tmpFile.Write([]byte(scriptContent))
-    if err != nil {
-        return "", err
-    }
-
-    return tmpFile.Name(), nil
+    _, err = tmpFile.WriteString(scriptContent)
+    return tmpFile.Name(), err
 }
 
 func NewInterpreter(config *config.Config) (*Interpreter, error) {
@@ -66,7 +64,7 @@ func NewInterpreter(config *config.Config) (*Interpreter, error) {
         return nil, err
     }
 
-    fullCmd := interpreterToCommand[config.Runtimes.Python]
+    fullCmd := interpreterToCommand[config.Runtimes.Python] // TODO: Add support for other languages
     cmd := exec.Command(fullCmd[0], append(fullCmd[1:], scriptPath)...)
     stdin, err := cmd.StdinPipe()
     if err != nil {
@@ -95,63 +93,56 @@ func NewInterpreter(config *config.Config) (*Interpreter, error) {
     }, nil
 }
 
-func (i *Interpreter) Evaluate(args []struct{ Name string; Value string }, component Component) (string, error) {
+func (i *Interpreter) Evaluate(args []struct{ Name, Value string }, component Component) (string, error) {
     formattedArgs := formatArgs(component.language, args)
     script := fmt.Sprintf(templates[component.language], component.content, component.name, formattedArgs)
 
-    stdin := i.stdin
-    stdout := i.stdout
-    stderr := i.stderr
-
-    codeToSend := script + "\n<<<END>>>\n"
-    _, err := io.WriteString(stdin, codeToSend)
-    if err != nil {
+    if _, err := io.WriteString(i.stdin, script+"\n<<<END>>>\n"); err != nil {
         return "", err
     }
 
-    reader := bufio.NewReader(stdout)
+    return i.readOutput()
+}
+
+
+func (i *Interpreter) readOutput() (string, error) {
     var output strings.Builder
     var inResult bool
 
+    reader := bufio.NewReader(i.stdout)
     for {
         line, err := reader.ReadString('\n')
         if err != nil {
-            // Read from stderr
-            errOutput, _ := io.ReadAll(stderr)
+            errOutput, _ := io.ReadAll(i.stderr)
             return "", fmt.Errorf("Error: %s", strings.TrimSpace(string(errOutput)))
         }
 
         line = strings.TrimSpace(line)
-
-        if line == "<<<START_RESULT>>>" {
+        switch line {
+        case "<<<START_RESULT>>>":
             inResult = true
-            continue
-        }
-        if line == "<<<END_RESULT>>>" {
-            break
-        }
-        if line == "<<<EXCEPTION>>>" {
-            var exceptionOutput strings.Builder
-            for {
-                exceptionLine, err := reader.ReadString('\n')
-                if err != nil {
-                    break
-                }
-                exceptionLine = strings.TrimSpace(exceptionLine)
-                if exceptionLine == "<<<END_EXCEPTION>>>" {
-                    break
-                }
-                exceptionOutput.WriteString(exceptionLine + "\n")
+        case "<<<END_RESULT>>>":
+            return strings.TrimSpace(output.String()), nil
+        case "<<<EXCEPTION>>>":
+            return i.handleException(reader)
+        default:
+            if inResult {
+                output.WriteString(line + "\n")
             }
-            return "", fmt.Errorf(exceptionOutput.String())
-        }
-        if inResult {
-            output.WriteString(line)
-            output.WriteString("\n")
         }
     }
+}
 
-    return strings.TrimSpace(output.String()), nil
+func (i *Interpreter) handleException(reader *bufio.Reader) (string, error) {
+    var exceptionOutput strings.Builder
+    for {
+        line, err := reader.ReadString('\n')
+        if err != nil || strings.TrimSpace(line) == "<<<END_EXCEPTION>>>" {
+            break
+        }
+        exceptionOutput.WriteString(strings.TrimSpace(line) + "\n")
+    }
+    return "", fmt.Errorf(exceptionOutput.String())
 }
 
 func (i *Interpreter) Close() {
@@ -173,21 +164,19 @@ func (i *Interpreter) Close() {
     }
 }
 
-func formatArgs(language ProgrammingLanguage, args []struct{ Name string; Value string }) string {
-    formattedArgs := make([]string, 0, len(args))
+func formatArgs(language ProgrammingLanguage, args []struct{ Name, Value string }) string {
+    var formattedArgs []string
     for _, arg := range args {
         if arg.Value == "" {
             continue
         }
-
-        value := strings.ReplaceAll(arg.Value, "'''", "\\'''")
-        value = strings.ReplaceAll(value, "\n", LINEBREAK)
+        sanitizedValue := strings.ReplaceAll(strings.ReplaceAll(arg.Value, "'''", "\\'''"), "\n", LINEBREAK)
+        template := argTemplates[language]
         if strings.HasPrefix(arg.Name, "_unnamed_") {
-            formattedArgs = append(formattedArgs, fmt.Sprintf(unnamedArgTemplates[language], value))
+            formattedArgs = append(formattedArgs, fmt.Sprintf(template.unnamed, sanitizedValue))
         } else {
-            formattedArgs = append(formattedArgs, fmt.Sprintf(namedArgTemplates[language], arg.Name, value))
+            formattedArgs = append(formattedArgs, fmt.Sprintf(template.named, arg.Name, sanitizedValue))
         }
     }
-
     return strings.Join(formattedArgs, ", ")
 }
