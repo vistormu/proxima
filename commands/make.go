@@ -103,6 +103,8 @@ func make_(args []string) error {
     if err != nil {
         return err
     }
+    defer e.Close()
+
     result, err := e.Evaluate()
     if err != nil {
         return err

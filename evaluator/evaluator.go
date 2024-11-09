@@ -25,7 +25,7 @@ type Evaluator struct {
 
     textReplacements map[string]string
 
-    interp Interpreter
+    interp *Interpreter
 }
 
 // PUBLIC
@@ -41,12 +41,17 @@ func New(expressions []ast.Expression, file string, config *config.Config) (*Eva
         textReplacements[replacement.From] = replacement.To
     }
 
+    interp, err := NewInterpreter(config)
+    if err != nil {
+        return nil, err
+    }
+
     return &Evaluator{
         expressions: expressions,
         components: components,
         file: file,
         textReplacements: textReplacements,
-        interp: NewInterpreter(config),
+        interp: interp,
     }, nil
 }
 
@@ -64,6 +69,10 @@ func (e *Evaluator) Evaluate() (string, error) {
     content = strings.ReplaceAll(content, SINGLE_QUOTE, "'")
 
     return content, nil
+}
+
+func (e *Evaluator) Close() {
+    e.interp.Close()
 }
 
 // EVALUATION

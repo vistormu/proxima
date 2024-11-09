@@ -34,7 +34,7 @@ type Interpreter struct {
     languageToCommand map[ProgrammingLanguage]string
 }
 
-func NewInterpreter(config *config.Config) Interpreter {
+func NewInterpreter(config *config.Config) (*Interpreter, error) {
     languageToCommand := map[ProgrammingLanguage]string {
         PYTHON: config.Evaluator.PythonCmd,
         JAVASCRIPT: config.Evaluator.JavaScriptCmd,
@@ -42,9 +42,9 @@ func NewInterpreter(config *config.Config) Interpreter {
         RUBY: config.Evaluator.RubyCmd,
     }
 
-    return Interpreter{
+    return &Interpreter{
         languageToCommand: languageToCommand,
-    }
+    }, nil
 }
 
 func (i *Interpreter) Evaluate(args []struct{Name string; Value string}, component Component) (string, error) {
@@ -71,6 +71,10 @@ func (i *Interpreter) Evaluate(args []struct{Name string; Value string}, compone
     }
 
     return strings.TrimSuffix(out.String(), "\n"), nil
+}
+
+func (i *Interpreter) Close() {
+    // do nothing
 }
 
 func formatArgs(language ProgrammingLanguage, args []struct{Name string; Value string}) string {
