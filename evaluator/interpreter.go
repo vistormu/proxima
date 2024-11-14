@@ -157,7 +157,7 @@ func formatArgs(args []struct{ Name, Value string }) string {
             continue
         }
 
-        sanitizedValue := strings.ReplaceAll(strings.ReplaceAll(arg.Value, "'''", "\\'''"), "\n", LINEBREAK)
+        sanitizedValue := strings.ReplaceAll(arg.Value, "'''", `\'\'\'`)
         if strings.HasPrefix(arg.Name, "_unnamed_") {
             formattedArgs = append(formattedArgs, fmt.Sprintf(unnamedArgTemplate, sanitizedValue))
         } else {

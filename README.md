@@ -1,4 +1,4 @@
-# proxima: A Markup-Language-Wrapper Markup Language
+# proxima: a markup-language-wrapper markup language!
 
 <p align="center">
     <a href="https://github.com/vistormu/proxima">
@@ -6,7 +6,7 @@
     </a>
 </p>
 
-_proxima_ is a markup language that wraps your favorite markup language with additional logic! You can create your own components in your favorite dynamic language: Python, JavaScript, Ruby, and Lua. These components can be then reused in any part of your document!
+_proxima_ is a markup language that transpiles to any text-based format you want. Creating Python components, you can extend the language with your own logic and reuse them in any part of your document.
 
 > [!WARNING]
 > Proxima is still under development, so there might be breaking changes between releases until v1.0.0 is out.
@@ -78,25 +78,20 @@ _proxima_ can be configured by using the `proxima.toml` file. Here is the defaul
 
 ```toml
 [parser]
-line_break_value = "\n"
-double_line_break_value = "\n\n"
+line_break_value = "\n" # The value that will be used as a line break
+double_line_break_value = "\n\n" # The value that will be used as a double line break
 
 [evaluator]
-python_cmd = "python3 -c"
-javascript_cmd = "node -e"
-lua_cmd = "lua -e"
-ruby_cmd = "ruby -e"
-# text_replacement = [
+python = "python3" # The python command to evaluate the components
+# text_replacement = [ # Global text replacements
 #    {from = "_", to = "\\_"},
 # ]
 
 [components]
-components_dir = "./components/"
-use_modules = false
-exclude = []
+components_dir = "./components/" # The directory where the components are stored
+use_modules = false # If true, the components will be called as @module.component
+exclude = [] # Components to exclude from being loaded
 ```
-
-You can change the line break values or change the language runtimes. Also, you can write text replacements that will be executed before the final output is generated. In this way, you don't have to escape characters that are not supported by the target markup language. Also, you can specify the components directory, and wether the components should use modules (e.g. if true, a component defined under "components/module/component.py" is then called in a .prox file as "@module.component"). Finally, you can exclude components from being loaded.
 
 ## Installation
 Download the _proxima_ binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
@@ -122,3 +117,4 @@ The main goal of _proxima_ is to be a simple, high-configurable, and extensible 
 - [ ] LSP
 - [ ] More configuration options
 - [ ] Documentation
+- [ ] Add support for other dynamic languages
