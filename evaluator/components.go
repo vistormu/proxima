@@ -10,24 +10,9 @@ import (
     "proxima/errors"
 )
 
-type ProgrammingLanguage int
-const (
-    PYTHON ProgrammingLanguage = iota
-    JAVASCRIPT
-    RUBY
-    LUA
-)
-var languages = map[string]ProgrammingLanguage{
-    "py": PYTHON,
-    "js": JAVASCRIPT,
-    "rb": RUBY,
-    "lua": LUA,
-}
-
 type Component struct {
     name string
     fullName string
-    language ProgrammingLanguage
     content string
 }
 
@@ -140,7 +125,6 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
     for _, file := range files {
         // paths
         fullPath := filepath.Join(componentsDir, file)
-        componentExt := strings.Split(filepath.Base(file), ".")[1]
         componentName := strings.Split(filepath.Base(file), ".")[0]
         fullComponentName := strings.ReplaceAll(strings.Split(file, ".")[0], "/", ".")
 
@@ -149,9 +133,8 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
             continue
         }
 
-        // only load components of the supported languages
-        lang, ok := languages[componentExt]
-        if !ok {
+        // only load python files
+        if filepath.Ext(fullPath) != ".py" {
             continue
         }
         
@@ -180,7 +163,6 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
         components[name] = Component{
             name: componentName,
             fullName: name,
-            language: lang,
             content: string(content),
         }
     }

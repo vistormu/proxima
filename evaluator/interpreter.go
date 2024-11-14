@@ -16,28 +16,15 @@ import (
 //go:embed persistent_interpreter.py
 var embeddedPythonScript string
 
-var interpreterToCommand = map[string][]string{
-    "python": {"python", "-u"},
-    "python3": {"python3", "-u"},
-    "node": {"node", "-e"},
-    "lua": {"lua", "-e"},
-    "ruby": {"ruby", "-e"},
-}
+var template = `%s
+result = %s(%s)
+print('<<<START_RESULT>>>')
+print(result)
+print('<<<END_RESULT>>>')
+`
 
-
-var templates = map[ProgrammingLanguage]string{
-    PYTHON: "%s\nresult = %s(%s)\nprint('<<<START_RESULT>>>')\nprint(result)\nprint('<<<END_RESULT>>>')\n",
-}
-
-var argTemplates = map[ProgrammingLanguage]struct {
-    unnamed string
-    named   string
-}{
-    PYTHON: {
-        unnamed: "r'''%s'''",
-        named:   "%s=r'''%s'''",
-    },
-}
+var unnamedArgTemplate = "r'''%s'''"
+var namedArgTemplate = "%s=r'''%s'''"
 
 type Interpreter struct {
     cmd               *exec.Cmd
@@ -64,8 +51,7 @@ func NewInterpreter(config *config.Config) (*Interpreter, error) {
         return nil, err
     }
 
-    fullCmd := interpreterToCommand[config.Runtimes.Python] // TODO: Add support for other languages
-    cmd := exec.Command(fullCmd[0], append(fullCmd[1:], scriptPath)...)
+    cmd := exec.Command(config.Evaluator.Python, "-u", scriptPath)
     stdin, err := cmd.StdinPipe()
     if err != nil {
         return nil, err
@@ -94,8 +80,8 @@ func NewInterpreter(config *config.Config) (*Interpreter, error) {
 }
 
 func (i *Interpreter) Evaluate(args []struct{ Name, Value string }, component Component) (string, error) {
-    formattedArgs := formatArgs(component.language, args)
-    script := fmt.Sprintf(templates[component.language], component.content, component.name, formattedArgs)
+    formattedArgs := formatArgs(args)
+    script := fmt.Sprintf(template, component.content, component.name, formattedArgs)
 
     if _, err := io.WriteString(i.stdin, script+"\n<<<END>>>\n"); err != nil {
         return "", err
@@ -164,18 +150,18 @@ func (i *Interpreter) Close() {
     }
 }
 
-func formatArgs(language ProgrammingLanguage, args []struct{ Name, Value string }) string {
+func formatArgs(args []struct{ Name, Value string }) string {
     var formattedArgs []string
     for _, arg := range args {
         if arg.Value == "" {
             continue
         }
+
         sanitizedValue := strings.ReplaceAll(strings.ReplaceAll(arg.Value, "'''", "\\'''"), "\n", LINEBREAK)
-        template := argTemplates[language]
         if strings.HasPrefix(arg.Name, "_unnamed_") {
-            formattedArgs = append(formattedArgs, fmt.Sprintf(template.unnamed, sanitizedValue))
+            formattedArgs = append(formattedArgs, fmt.Sprintf(unnamedArgTemplate, sanitizedValue))
         } else {
-            formattedArgs = append(formattedArgs, fmt.Sprintf(template.named, arg.Name, sanitizedValue))
+            formattedArgs = append(formattedArgs, fmt.Sprintf(namedArgTemplate, arg.Name, sanitizedValue))
         }
     }
     return strings.Join(formattedArgs, ", ")

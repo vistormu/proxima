@@ -9,13 +9,8 @@ const DefaultConfig = `[parser]
 line_break_value = "\n"
 double_line_break_value = "\n\n"
 
-[runtimes]
-python = "python3"
-javascript = "node"
-lua = "lua"
-ruby = "ruby"
-
 [evaluator]
+python = "python3"
 # text_replacements = [
 #     { from = "", to = "" },
 # ]
@@ -34,16 +29,6 @@ type ParserConfig struct {
     DoubleLineBreakValue string `toml:"double_line_break_value"`
 }
 
-// ========
-// RUNTIMES
-// ========
-type RuntimesConfig struct {
-    Python string `toml:"python"`
-    JavaScript string `toml:"javascript"`
-    Lua string `toml:"lua"`
-    Ruby string `toml:"ruby"`
-}
-
 // =========
 // EVALUATOR
 // =========
@@ -53,6 +38,7 @@ type TextReplacement struct {
 }
 
 type EvaluatorConfig struct {
+    Python string `toml:"python"`
     TextReplacements []TextReplacement `toml:"text_replacements"`
 }
 
@@ -67,7 +53,6 @@ type ComponentsConfig struct {
 
 type Config struct {
     Parser ParserConfig `toml:"parser"`
-    Runtimes RuntimesConfig `toml:"runtimes"`
     Evaluator EvaluatorConfig `toml:"evaluator"`
     Components ComponentsConfig `toml:"components"`
 }
@@ -78,13 +63,8 @@ func GetDefaultConfig() *Config {
             LineBreakValue: "\n",
             DoubleLineBreakValue: "\n\n",
         },
-        Runtimes: RuntimesConfig{
-            Python: "python3",
-            JavaScript: "node",
-            Lua: "lua",
-            Ruby: "ruby",
-        },
         Evaluator: EvaluatorConfig{
+            Python: "python3",
             TextReplacements: []TextReplacement{},
         },
         Components: ComponentsConfig{
