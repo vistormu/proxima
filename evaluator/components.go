@@ -154,18 +154,26 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
             return nil, errors.NewComponentError(errors.DUPLICATE_COMPONENT, name)
         }
 
-        // create component
-        content, err := os.ReadFile(fullPath)
+        // read file content
+        content, err := getFileContent(fullPath)
         if err != nil {
-            return nil, errors.NewComponentError(errors.ERROR_READING_FILE, fullPath, err.Error())
+            return nil, err
         }
 
         components[name] = Component{
             name: componentName,
             fullName: name,
-            content: string(content),
+            content: content,
         }
     }
 
     return components, nil
+}
+
+func getFileContent(path string) (string, error) {
+    content, err := os.ReadFile(path)
+    if err != nil {
+        return "", errors.NewComponentError(errors.ERROR_READING_FILE, path, err.Error())
+    }
+    return string(content), nil
 }

@@ -88,7 +88,7 @@ python = "python3" # The python command to evaluate the components
 # ]
 
 [components]
-components_dir = "./components/" # The directory where the components are stored
+path = "./components/" # The directory where the components are stored
 use_modules = false # If true, the components will be called as @module.component
 exclude = [] # Components to exclude from being loaded
 ```
