@@ -4,6 +4,7 @@ import (
     "os"
     "strings"
     "path/filepath"
+    "fmt"
 
     "proxima/config"
     "proxima/ast"
@@ -171,9 +172,46 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
 }
 
 func getFileContent(path string) (string, error) {
-    content, err := os.ReadFile(path)
-    if err != nil {
+	contentBytes, err := os.ReadFile(path)
+	if err != nil {
         return "", errors.NewComponentError(errors.ERROR_READING_FILE, path, err.Error())
-    }
-    return string(content), nil
+	}
+	content := string(contentBytes)
+
+	lines := strings.Split(content, "\n")
+
+	var newLines []string
+	var preDefLines []string
+
+	defFound := false
+	var functionIndent string
+
+	for _, line := range lines {
+		trimmedLine := strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(trimmedLine, "def ") && !defFound {
+			defFound = true
+			functionIndent = line[:len(line) - len(trimmedLine)]
+			newLines = append(newLines, line)
+
+			for _, preLine := range preDefLines {
+				if preLine != "" {
+					newLines = append(newLines, functionIndent + "    " + preLine)
+				} else {
+					newLines = append(newLines, preLine)
+				}
+			}
+		} else {
+			if !defFound {
+				preDefLines = append(preDefLines, line)
+			} else {
+				newLines = append(newLines, line)
+			}
+		}
+	}
+
+	if !defFound {
+		return "", fmt.Errorf("no function definition found starting with 'def '")
+	}
+
+	return strings.Join(newLines, "\n"), nil
 }

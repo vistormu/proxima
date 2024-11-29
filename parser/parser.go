@@ -57,7 +57,41 @@ func (p *Parser) Parse() []ast.Expression {
         }
     }
 
-    return expressions
+    return mergeConsecutiveTexts(expressions)
+}
+
+func mergeConsecutiveTexts(exprs []ast.Expression) []ast.Expression {
+    var result []ast.Expression
+    var prevText *ast.Text
+
+    for _, expr := range exprs {
+        switch e := expr.(type) {
+        case *ast.Text:
+            if prevText != nil {
+                prevText.Value += e.Value
+            } else {
+                prevText = &ast.Text{
+                    Value:      e.Value,
+                    LineNumber: e.LineNumber,
+                }
+                result = append(result, prevText)
+            }
+
+        case *ast.Tag:
+            prevText = nil
+            for i := range e.Args {
+                e.Args[i].Values = mergeConsecutiveTexts(e.Args[i].Values)
+            }
+
+            result = append(result, e)
+
+        default:
+            prevText = nil
+            result = append(result, e)
+        }
+    }
+
+    return result
 }
 
 // =======
@@ -149,23 +183,6 @@ func (p *Parser) parseExpression() ast.Expression {
     default:
         return &ast.Text{Value: t.Literal, LineNumber: p.currentLine}
     }
-}
-
-func (p *Parser) parseText() *ast.Text {
-    t := p.currentToken()
-    text := &ast.Text{Value: t.Literal, LineNumber: p.currentLine}
-
-    // check for line breaks
-    c1 := p.rawPeekToken(1).Type == token.LINEBREAK
-    c2 := p.rawPeekToken(2).Type == token.LINEBREAK
-
-    if c1 && c2 { // double line break
-        text.Value += p.doubleLineBreakValue
-    } else if c1 { // single line break
-        text.Value += p.lineBreakValue
-    }
-    
-    return text
 }
 
 func (p *Parser) parseTag() *ast.Tag {

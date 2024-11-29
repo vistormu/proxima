@@ -1,9 +1,12 @@
 package parser
 
 import (
+    "fmt"
     "testing"
+
     "proxima/tokenizer"
     "proxima/ast"
+    "proxima/config"
 )
 
 // ========
@@ -23,7 +26,20 @@ func checkParserErrors(t *testing.T, parser *Parser) {
 
 func checkExpressionLength(t *testing.T, expressions []ast.Expression, expected int) {
     if len(expressions) != expected {
-        t.Fatalf("Wrong number of expressions\nexpected=%d\ngot=%d", expected, len(expressions))
+        message := fmt.Sprintf("Wrong number of expressions\nexpected=%d\ngot=%d", expected, len(expressions))
+
+        for i, expression := range expressions {
+            if _, ok := expression.(*ast.Text); ok {
+                message += fmt.Sprintf("\ntext %d: %s", i, expression.(*ast.Text).Value)
+                continue
+            } else if _, ok := expression.(*ast.Tag); ok {
+                message += fmt.Sprintf("\ntag %d: %s", i, expression.(*ast.Tag).Name)
+            } else {
+                message += fmt.Sprintf("\nunknown %d\n", i)
+            }
+        }
+
+        t.Fatalf(message)
     }
 }
 
@@ -61,7 +77,13 @@ func checkArgument(t *testing.T, argument ast.Argument, expectedName string, exp
     }
 
     if len(argument.Values) != len(expectedValue) {
-        t.Fatalf("Wrong number of argument values\nexpected=%d\ngot=%d", len(expectedValue), len(argument.Values))
+        message := fmt.Sprintf("Wrong number of argument values\nexpected=%d\ngot=%d", len(expectedValue), len(argument.Values))
+
+        for i, value := range argument.Values {
+            message += fmt.Sprintf("\nvalue %d: %s", i, value.(*ast.Text).Value)
+        }
+
+        t.Fatalf(message)
     }
 
     for i, value := range expectedValue {
@@ -78,7 +100,7 @@ func getExpressions(t *testing.T, input string) []ast.Expression {
     tokenizer := tokenizer.New([]rune(input))
     tokens := tokenizer.Tokenize()
 
-    parser := New(tokens, "test")
+    parser := New(tokens, "test", config.GetDefaultConfig())
     expressions := parser.Parse()
 
     checkParserErrors(t, parser)
@@ -102,9 +124,8 @@ func TestDoubleText(t *testing.T) {
     This is another text`
     expressions := getExpressions(t, input)
 
-    checkExpressionLength(t, expressions, 2)
-    checkExpressionIsText(t, expressions[0], "This is a text")
-    checkExpressionIsText(t, expressions[1], "This is another text")
+    checkExpressionLength(t, expressions, 1)
+    checkExpressionIsText(t, expressions[0], "This is a text\nThis is another text")
 }
 
 func TestTagWithOneArg(t *testing.T) {
@@ -136,7 +157,7 @@ func TestTagWithLinebreak(t *testing.T) {
     checkExpressionLength(t, expressions, 1)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 1)
 
-    checkArgument(t, tag.Args[0], "", []string{"arg"})
+    checkArgument(t, tag.Args[0], "", []string{"arg\n"})
 }
 
 func TestTagWithNamedArgs(t *testing.T) {
@@ -148,7 +169,7 @@ func TestTagWithNamedArgs(t *testing.T) {
     checkExpressionLength(t, expressions, 1)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 1)
 
-    checkArgument(t, tag.Args[0], "name", []string{"value"})
+    checkArgument(t, tag.Args[0], "name", []string{"value\n"})
 }
 
 func TestTagWithMultipleArgs(t *testing.T) {
@@ -188,9 +209,9 @@ func TestTagWithMultipleArgsAndNamedArgs(t *testing.T) {
     checkExpressionLength(t, expressions, 1)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 3)
 
-    checkArgument(t, tag.Args[0], "name1", []string{"value1"})
-    checkArgument(t, tag.Args[1], "name2", []string{"value2"})
-    checkArgument(t, tag.Args[2], "name3", []string{"value3"})
+    checkArgument(t, tag.Args[0], "name1", []string{"value1\n"})
+    checkArgument(t, tag.Args[1], "name2", []string{"value2\n"})
+    checkArgument(t, tag.Args[2], "name3", []string{"value3\n"})
 }
 
 func TestTagWithEmptyNamedArg(t *testing.T) {
@@ -204,7 +225,7 @@ func TestTagWithEmptyNamedArg(t *testing.T) {
     checkExpressionLength(t, expressions, 1)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 2)
 
-    checkArgument(t, tag.Args[0], "name1", []string{"value1"})
+    checkArgument(t, tag.Args[0], "name1", []string{"value1\n"})
     checkArgument(t, tag.Args[1], "name2", []string{})
 }
 
@@ -221,9 +242,9 @@ func TestErrors(t *testing.T) {
     checkExpressionLength(t, expressions, 1)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 3)
 
-    checkArgument(t, tag.Args[0], "name1", []string{"value1"})
-    checkArgument(t, tag.Args[1], "name2", []string{"value2"})
-    checkArgument(t, tag.Args[2], "name3", []string{"value3"})
+    checkArgument(t, tag.Args[0], "name1", []string{"value1\n"})
+    checkArgument(t, tag.Args[1], "name2", []string{"value2\n"})
+    checkArgument(t, tag.Args[2], "name3", []string{"value3\n"})
 }
 
 func TestNestedTags(t *testing.T) {
@@ -232,7 +253,7 @@ func TestNestedTags(t *testing.T) {
     }`
     expressions := getExpressions(t, input)
 
-    checkExpressionLength(t, expressions, 1)
+    checkExpressionLength(t, expressions, 2)
     tag := checkExpressionIsTag(t, expressions[0], "tag", 1)
 
     checkExpressionLength(t, tag.Args[0].Values, 1)
