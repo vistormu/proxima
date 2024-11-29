@@ -36,7 +36,7 @@ func loadComponents(expressions []ast.Expression, config *config.Config) (map[st
         }
     }
     if len(missingComponents) > 0 {
-        return nil, errors.NewComponentError(errors.MISSING_COMPONENTS, missingComponents)
+        return nil, errors.New(errors.MISSING, missingComponents)
     }
 
     return components, nil
@@ -118,7 +118,7 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
     // get all files under the components directory recursively
     files, err := readAllFiles(componentsDir)
     if err != nil {
-        return nil, errors.NewComponentError(errors.ERROR_READING_DIR, componentsDir, err.Error())
+        return nil, errors.New(errors.READ_DIR, componentsDir, err.Error())
     }
 
     // read all files
@@ -152,7 +152,7 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
 
         // detect if a component with the same name already exists
         if _, ok := components[name]; ok {
-            return nil, errors.NewComponentError(errors.DUPLICATE_COMPONENT, name)
+            return nil, errors.New(errors.DUPLICATE, name)
         }
 
         // read file content
@@ -174,7 +174,7 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
 func getFileContent(path string) (string, error) {
 	contentBytes, err := os.ReadFile(path)
 	if err != nil {
-        return "", errors.NewComponentError(errors.ERROR_READING_FILE, path, err.Error())
+        return "", errors.New(errors.READ_FILE, path, err.Error())
 	}
 	content := string(contentBytes)
 

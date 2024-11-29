@@ -130,7 +130,7 @@ func (e *Evaluator) evaluateTag(tag *ast.Tag) (string, error) {
     // interpret
     output, err := e.interp.Evaluate(args, component)
     if err != nil {
-        return "", errors.NewEvalError(errors.ERROR_EXECUTING_SCRIPT, e.file, e.currentLine, component.fullName, err)
+        return "", errors.New(errors.SCRIPT, e.file, e.currentLine, component.fullName, err)
     }
 
     return output, nil

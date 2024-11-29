@@ -2,6 +2,9 @@ package config
 
 import (
     "os"
+
+    // "proxima/errors"
+
     "github.com/BurntSushi/toml"
 )
 
@@ -83,5 +86,7 @@ func LoadConfig() (*Config, error) {
     }
 
     _, err := toml.DecodeFile("proxima.toml", config)
+
+    // return config, errors.New(errors.CONFIG, err.Error())
     return config, err
 }

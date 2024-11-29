@@ -57,6 +57,10 @@ func (p *Parser) Parse() []ast.Expression {
         }
     }
 
+    if len(p.Errors) > 0 {
+        return []ast.Expression{}
+    }
+
     return mergeConsecutiveTexts(expressions)
 }
 
@@ -150,7 +154,8 @@ func (p *Parser) rawPeekToken(position int) token.Token {
 }
 
 func (p *Parser) addError(errorType errors.ErrorType, args ...any) {
-    p.Errors = append(p.Errors, errors.NewParseError(errorType, p.file, p.currentLine, args...))
+    args = append([]any{p.file, p.currentLine}, args...)
+    p.Errors = append(p.Errors, errors.New(errorType, args...))
 }
 
 func (p *Parser) expect(tokenType token.TokenType) (token.Token, bool) {

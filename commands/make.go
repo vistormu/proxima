@@ -13,33 +13,32 @@ import (
     "proxima/errors"
 )
 
+var flags = map[string]string{
+    "-o": "--output",
+    "--output": "--output",
+    "-output": "--output",
+}
+
 func parseArgs(args []string) (map[string]string, error) {
-    equivalentFlags := map[string]string{
-        "-o":           "--output",
-        "--output":     "--output",
-    }
-
-    parsedFlags := map[string]string{
-        "--output":    "",
-    }
-
     // parse flags
+    var parsedFlags = make(map[string]string)
     for i := 1; i < len(args); i++ {
         if !strings.HasPrefix(args[i], "-") {
             continue
         }
 
-        flag, ok := equivalentFlags[args[i]]
+        flag, ok := flags[args[i]]
         if !ok {
-            return nil, errors.NewCliError(errors.UNKNOWN_FLAG, args[i])
+            closestMatch := findClosestMatch(args[i], keys(flags))
+            return nil, errors.New(errors.FLAG, args[i], closestMatch)
         }
 
         if i+1 >= len(args) {
-            return nil, errors.NewCliError(errors.MISSING_FLAG_VALUE, args[i])
+            return nil, errors.New(errors.FLAG_VALUE, args[i])
         }
 
         if strings.HasPrefix(args[i+1], "-") {
-            return nil, errors.NewCliError(errors.MISSING_FLAG_VALUE, args[i])
+            return nil, errors.New(errors.FLAG_VALUE, args[i])
         }
 
         parsedFlags[flag] = args[i+1]
@@ -51,13 +50,14 @@ func parseArgs(args []string) (map[string]string, error) {
 
 func make_(args []string) error {
     if len(args) < 1 {
-        return errors.NewCliError(errors.WRONG_N_ARGS, 1, len(args))
+        return errors.New(errors.N_ARGS, 1, len(args))
     }
 
     // get file
     filename := args[0]
     if !strings.HasSuffix(filename, MAIN_EXT) {
-        return errors.NewCliError(errors.INVALID_FILE_EXTENSION, filename)
+        wrongExtension := strings.Split(filename, ".")[1]
+        return errors.New(errors.EXTENSION, "." + wrongExtension)
     }
 
     // parse flags
@@ -67,7 +67,7 @@ func make_(args []string) error {
     }
 
     if flags["--output"] == "" {
-        return errors.NewCliError(errors.NO_OUTPUT_FLAG)
+        return errors.New(errors.OUTPUT_FLAG)
     }
 
     // load config
@@ -81,7 +81,7 @@ func make_(args []string) error {
     // read file
     content, err := os.ReadFile(filename)
     if err != nil {
-        return err
+        return errors.New(errors.READ_FILE, filename)
     }
 
     // tokenize
@@ -93,9 +93,11 @@ func make_(args []string) error {
     expressions := p.Parse()
 
     if len(p.Errors) > 0 {
+        errorMsg := ""
         for _, e := range p.Errors {
-            fmt.Println(e.Error())
+            errorMsg += e.Error() + "\n"
         }
+        return fmt.Errorf("%s", errorMsg)
     }
 
     // evaluate
@@ -113,7 +115,7 @@ func make_(args []string) error {
     // save result as output file
     err = os.WriteFile(flags["--output"], []byte(result), 0644)
     if err != nil {
-        return err
+        return errors.New(errors.CREATE_FILE, flags["--output"])
     }
 
     fmt.Printf("\x1b[32;1m\"%s\" generated successfully! (%d ms)\x1b[0m\n\n", flags["--output"], time.Since(begin).Milliseconds())

@@ -3,6 +3,7 @@ package commands
 import (
     "fmt"
     "os"
+
     "proxima/errors"
 )
 
@@ -29,13 +30,14 @@ func Execute(args []string) {
 
 func execute(args []string) error {
     if len(args) < 2 {
-        return errors.NewCliError(errors.WRONG_N_ARGS, "at least one", len(args)-1)
+        return errors.New(errors.N_ARGS, "at least one", len(args)-1)
     }
     args = args[1:]
 
     command, ok := commands[args[0]]
     if !ok {
-        return errors.NewCliError(errors.UNKNOWN_COMMAND, args[0])
+        closestMatch := findClosestMatch(args[0], keys(commands))
+        return errors.New(errors.COMMAND, args[0], closestMatch)
     }
 
     return command(args[1:])

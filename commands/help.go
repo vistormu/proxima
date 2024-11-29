@@ -5,9 +5,16 @@ import (
     "proxima/errors"
 )
 
+var helpFunctions = map[string]func(){
+    "init": helpInit,
+    "make": helpMake,
+    "version": helpVersion,
+    "help": helpHelp,
+}
+
 func help(args []string) error {
     if len(args) > 1 {
-        return errors.NewCliError(errors.WRONG_N_ARGS, 1, len(args))
+        return errors.New(errors.N_ARGS, 1, len(args))
     }
 
     if len(args) == 0 {
@@ -15,18 +22,13 @@ func help(args []string) error {
         return nil
     }
 
-    switch args[0] {
-    case "init":
-        helpInit()
-    case "make":
-        helpMake()
-    case "version":
-        helpVersion()
-    case "help":
-        helpHelp()
-    default:
-        return errors.NewCliError(errors.UNKNOWN_COMMAND, args[0])
+    function, ok := helpFunctions[args[0]]
+    if !ok {
+        closestMatch := findClosestMatch(args[0], keys(helpFunctions))
+        return errors.New(errors.COMMAND, args[0], closestMatch)
     }
+
+    function()
 
     return nil
 }
@@ -46,12 +48,11 @@ func helpBasic() {
 func helpMake() {
     msg := "\x1b[35mproxima\x1b[0m make\n\n" +
     "\x1b[32musage\x1b[0m:\n" +
-    "    proxima make <file> -c <components_path> -o <output_path>\n\n" +
+    "    proxima make <file> -o <output_file>\n\n" +
     "\x1b[32mdescription\x1b[0m:\n" +
     "    generate the specified new file from a .prox file\n\n" +
     "\x1b[32mflags\x1b[0m:\n" +
-    "    -c <components_path>    path to the components directory. by default, the components directory is \"./components\"\n" +
-    "    -o <output_path>        path to the output file\n"
+    "    -o <output_file>        the output file name\n"
 
     fmt.Println(msg)
 }
