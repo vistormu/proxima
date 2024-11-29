@@ -39,6 +39,10 @@ const (
 
     // Evaluator errors
     SCRIPT EvalError = "error executing python component\x1b[0m\n   |> file: %v\n   |> line: %v\n   |> component: %v\n   |> full error:\n\n%v"
+    NO_DEF EvalError = "missing function definition\x1b[0m\n   |> component: %v"
+    NAME_MISMATCH EvalError = "name mismatch\x1b[0m\n   |> component: %v\n   |> file name: %v\n   |> function name: %v\n   |> function name and file name must match"
+    INIT_INTERPRETER EvalError = "error initializing python interpreter\x1b[0m\n   |> full error:\n\n%v"
+    INTERPRETER_EVAL EvalError = "error evaluating python script\x1b[0m\n   |> full error:\n\n%v"
 
     // Component errors
     MISSING    ComponentError = "missing component definitions\x1b[0m\n   |> components: %v"

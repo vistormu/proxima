@@ -118,7 +118,11 @@ func make_(args []string) error {
         return errors.New(errors.CREATE_FILE, flags["--output"])
     }
 
-    fmt.Printf("\x1b[32;1m\"%s\" generated successfully! (%d ms)\x1b[0m\n\n", flags["--output"], time.Since(begin).Milliseconds())
+    successMsg := "\x1b[32m"
+    successMsg += "-> proxima finished successfully!\x1b[0m\n"
+    successMsg += fmt.Sprintf("   |> output file: %s\n", flags["--output"])
+    successMsg += fmt.Sprintf("   |> time elapsed: %d ms\n", time.Since(begin).Milliseconds())
+    fmt.Println(successMsg)
 
     return nil
 }

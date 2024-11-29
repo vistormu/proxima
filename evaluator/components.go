@@ -4,7 +4,6 @@ import (
     "os"
     "strings"
     "path/filepath"
-    "fmt"
 
     "proxima/config"
     "proxima/ast"
@@ -161,6 +160,13 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
             return nil, err
         }
 
+        // check if function name and file name match
+        functionName := strings.Split(content, "(")[0]
+        functionName = strings.Split(functionName, "def ")[1]
+        if functionName != componentName {
+            return nil, errors.New(errors.NAME_MISMATCH, fullPath, name, functionName)
+        }
+
         components[name] = Component{
             name: componentName,
             fullName: name,
@@ -210,7 +216,7 @@ func getFileContent(path string) (string, error) {
 	}
 
 	if !defFound {
-		return "", fmt.Errorf("no function definition found starting with 'def '")
+		return "", errors.New(errors.NO_DEF, path)
 	}
 
 	return strings.Join(newLines, "\n"), nil

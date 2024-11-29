@@ -9,6 +9,7 @@ import (
     "os"
 
     "proxima/config"
+    "proxima/errors"
 
     _ "embed"
 )
@@ -48,26 +49,26 @@ func createTempPythonScript(scriptContent string) (string, error) {
 func NewInterpreter(config *config.Config) (*Interpreter, error) {
     scriptPath, err := createTempPythonScript(embeddedPythonScript)
     if err != nil {
-        return nil, err
+        return nil, errors.New(errors.INIT_INTERPRETER, err.Error())
     }
 
     cmd := exec.Command(config.Evaluator.Python, "-u", scriptPath)
     stdin, err := cmd.StdinPipe()
     if err != nil {
-        return nil, err
+        return nil, errors.New(errors.INIT_INTERPRETER, err.Error())
     }
     stdout, err := cmd.StdoutPipe()
     if err != nil {
-        return nil, err
+        return nil, errors.New(errors.INIT_INTERPRETER, err.Error())
     }
     stderr, err := cmd.StderrPipe()
     if err != nil {
-        return nil, err
+        return nil, errors.New(errors.INIT_INTERPRETER, err.Error())
     }
 
     err = cmd.Start()
     if err != nil {
-        return nil, err
+        return nil, errors.New(errors.INIT_INTERPRETER, err.Error())
     }
 
     return &Interpreter{
@@ -82,6 +83,11 @@ func NewInterpreter(config *config.Config) (*Interpreter, error) {
 func (i *Interpreter) Evaluate(args []struct{ Name, Value string }, component Component) (string, error) {
     formattedArgs := formatArgs(args)
     script := fmt.Sprintf(template, component.content, component.name, formattedArgs)
+
+    _, err := io.WriteString(i.stdin, script+"\n<<<END>>>\n")
+    if err != nil {
+        return "", err
+    }
 
     if _, err := io.WriteString(i.stdin, script+"\n<<<END>>>\n"); err != nil {
         return "", err
