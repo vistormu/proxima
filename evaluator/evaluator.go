@@ -18,6 +18,8 @@ type Evaluator struct {
     currentLine int
 
     textReplacements map[string]string
+    beginWith string
+    endWith string
 
     interp *Interpreter
 }
@@ -45,6 +47,8 @@ func New(expressions []ast.Expression, file string, config *config.Config) (*Eva
         components: components,
         file: file,
         textReplacements: textReplacements,
+        beginWith: config.Evaluator.BeginWith,
+        endWith: config.Evaluator.EndWith,
         interp: interp,
     }, nil
 }
@@ -59,7 +63,7 @@ func (e *Evaluator) Evaluate() (string, error) {
         content += result
     }
 
-    return content, nil
+    return e.beginWith + content + e.endWith, nil
 }
 
 func (e *Evaluator) Close() {

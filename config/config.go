@@ -14,6 +14,8 @@ double_line_break_value = "\n\n"
 
 [evaluator]
 python = "python3"
+begin_with = ""
+end_with = ""
 # text_replacements = [
 #     { from = "", to = "" },
 # ]
@@ -42,6 +44,8 @@ type TextReplacement struct {
 
 type EvaluatorConfig struct {
     Python string `toml:"python"`
+    BeginWith string `toml:"begin_with"`
+    EndWith string `toml:"end_with"`
     TextReplacements []TextReplacement `toml:"text_replacements"`
 }
 
@@ -68,6 +72,8 @@ func GetDefaultConfig() *Config {
         },
         Evaluator: EvaluatorConfig{
             Python: "python3",
+            BeginWith: "",
+            EndWith: "",
             TextReplacements: []TextReplacement{},
         },
         Components: ComponentsConfig{
