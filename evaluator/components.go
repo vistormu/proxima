@@ -13,6 +13,7 @@ import (
 type Component struct {
     name string
     fullName string
+    module string
     content string
 }
 
@@ -94,12 +95,9 @@ func isDir(path string) bool {
     return fileInfo.IsDir()
 }
 
-func getComponents(uniqueTags map[string]bool, config *config.Config) (map[string]Component, error) {
-    // config values
-    componentsDir := config.Components.Path
-    useModules := config.Components.UseModules
+func getExcludePaths(exclude []string) map[string]bool {
     excluded := map[string]bool{}
-    for _, exclude := range config.Components.Exclude {
+    for _, exclude := range exclude {
         if isDir(exclude) {
             files, err := readAllFiles(exclude)
             if err != nil {
@@ -113,35 +111,58 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
         }
         excluded[exclude] = true
     }
+    return excluded
+}
 
-    // get all files under the components directory recursively
-    files, err := readAllFiles(componentsDir)
+func getComponents(uniqueTags map[string]bool, config *config.Config) (map[string]Component, error) {
+    // config values
+    excluded := getExcludePaths(config.Components.Exclude)
+
+    files, err := readAllFiles(config.Components.Path)
     if err != nil {
-        return nil, errors.New(errors.READ_DIR, componentsDir, err.Error())
+        return nil, errors.New(errors.READ_DIR, config.Components.Path, err.Error())
     }
 
     // read all files
     components := map[string]Component{}
     for _, file := range files {
+        file = filepath.ToSlash(filepath.Clean(file))
+
+        if filepath.Ext(file) != ".py" {
+            continue
+        }
+
         // paths
-        fullPath := filepath.Join(componentsDir, file)
-        componentName := strings.Split(filepath.Base(file), ".")[0]
-        fullComponentName := strings.ReplaceAll(strings.Split(file, ".")[0], "/", ".")
+        fullPath := filepath.Join(config.Components.Path, file)
+        modules := strings.Split(strings.TrimSuffix(file, ".py"), "/")
+
+        moduleName := ""
+        if len(modules) > 1 {
+            moduleName = modules[len(modules) - 2]
+        }
+
+        componentName := modules[len(modules) - 1]
+        fullComponentName := strings.Join(modules, ".")
 
         // check if the file is excluded
         if _, ok := excluded[fullPath]; ok {
             continue
         }
-
-        // only load python files
-        if filepath.Ext(fullPath) != ".py" {
+        if _, ok := excluded[componentName]; ok {
+            continue
+        }
+        if _, ok := excluded[fullComponentName]; ok {
             continue
         }
         
         // get component name
         name := componentName
-        if useModules {
-            name = fullComponentName
+        if config.Components.UseModules {
+            if moduleName == componentName {
+                name = strings.TrimSuffix(fullComponentName, "." + componentName)
+            } else {
+                name = fullComponentName
+            }
         }
 
         // only load components that appear in the file
@@ -170,6 +191,7 @@ func getComponents(uniqueTags map[string]bool, config *config.Config) (map[strin
         components[name] = Component{
             name: componentName,
             fullName: name,
+            module: moduleName,
             content: content,
         }
     }
