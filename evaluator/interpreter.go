@@ -89,10 +89,6 @@ func (i *Interpreter) Evaluate(args []struct{ Name, Value string }, component Co
         return "", err
     }
 
-    if _, err := io.WriteString(i.stdin, script+"\n<<<END>>>\n"); err != nil {
-        return "", err
-    }
-
     return i.readOutput()
 }
 
