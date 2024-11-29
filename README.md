@@ -11,9 +11,9 @@ _proxima_ is a markup language that transpiles to any text-based format you want
 > [!WARNING]
 > Proxima is still under development, so there might be breaking changes between releases until v1.0.0 is out.
 
-## Usage
+## basic usage
 
-A common proxima project consists of the following structure:
+A common _proxima_ project consists of the following structure:
 
 ```plaintext
 ├── components/         # All proxima components are defined here
@@ -24,7 +24,11 @@ A common proxima project consists of the following structure:
 > [!NOTE]
 > running `proxima init` initializes a project with this structure.
 
-The components are defined under the `components` directory in the root of your project. In this case, we have a python component called "example.py"
+The components are defined under the `components` directory in the root of your project. 
+
+A component is a python file with a function with the same name as the file. The types of the arguments passed to the function are always "str".
+
+In this case, we have a python component called "example.py":
 
 ```python
 # components/example.py
@@ -32,8 +36,6 @@ The components are defined under the `components` directory in the root of your 
 def example(arg: str) -> str:
     return f"the passed argument is: {arg}"
 ```
-
-Proxima will execute the function with the same name as the file. This function will always have string arguments and will return a string.
 
 Then, we can use the component in our Proxima file:
 
@@ -57,6 +59,10 @@ the output file should look like this:
 This is a proxima example, and the passed argument is: 2.
 ```
 
+## advanced usage
+
+### arguments
+
 Multiple arguments can be passed to the component by enclosing them in curly braces.
 
 ```proxima
@@ -73,27 +79,73 @@ Also, you can pass the arguments by name by using the following syntax:
 This is a proxima example, and @component_with_named_args{<first> one}{<second> two}.
 ```
 
-## Configuring proxima
+### moduled components
+
+By deafult, _proxima_ looks recursively for components in the `components` directory and loads them by their filename.
+
+If we have the following structure:
+
+```
+├── components/
+│   └── module/
+│       └── component.py
+```
+
+the component is called in the following way:
+
+```proxima
+# main.prox
+
+This is how the component is called by default: @component{}.
+```
+
+However, if the `use_modules` option is set to `true` in the `proxima.toml` file (further explained in the [configuring proxima](#configuring-proxima) section), the components can be called as:
+
+```proxima
+# main.prox
+
+This is how the component is called with modules: @module.component{}.
+```
+
+### default components
+
+If the `use_modules` option is set to `true`, each module can have a default component that is called when the module is called without specifying the component. The default component must be called as the module itself.
+
+```
+├── components/
+│   └── module/
+│       └── module.py
+```
+
+```proxima
+# main.prox
+
+This is how the default component is called: @module{}.
+```
+
+## configuring proxima
 _proxima_ can be configured by using the `proxima.toml` file. Here is the default configuration:
 
 ```toml
 [parser]
-line_break_value = "\n" # The value that will be used as a line break
+line_break_value = "\n"          # The value that will be used as a line break
 double_line_break_value = "\n\n" # The value that will be used as a double line break
 
 [evaluator]
-python = "python3" # The python command to evaluate the components
-# text_replacement = [ # Global text replacements
+python = "python3"               # The python command to evaluate the components
+begin_with = ""                  # The string that will be added at the beginning of the evaluated file
+end_with = ""                    # The string that will be added at the end of the evaluated file
+# text_replacement = [           # Global text replacements
 #    {from = "_", to = "\\_"},
 # ]
 
 [components]
-path = "./components/" # The directory where the components are stored
-use_modules = false # If true, the components will be called as @module.component
-exclude = [] # Components to exclude from being loaded
+path = "./components/"           # The directory where the components are stored
+use_modules = false              # If true, the components will be called as @module.component
+exclude = []                     # Components to exclude from being loaded
 ```
 
-## Installation
+## installation
 Download the _proxima_ binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
 
 Move it to the system's binaries
@@ -108,13 +160,15 @@ and give it execution privileges:
 chmod +x /usr/local/bin/proxima
 ```
 
-## Tooling
+## tooling
 _proxima_ syntax highlighting is available [here](https://github.com/vistormu/tree-sitter-proxima.git).
 
-## Future plans
-The main goal of _proxima_ is to be a simple, high-configurable, and extensible markup language that can transpile to any other markup language. The following features are planned for the future:
+## future plans
+The main goal of _proxima_ is to be a simple, high-configurable, and extensible. The following features are planned for the future:
 
 - [ ] LSP
 - [ ] More configuration options
 - [ ] Documentation
-- [ ] Add support for other dynamic languages
+
+
+_proxima_ is a project I made for fun and my personal use. I do not plan to add support for other languages, as I mostly use Python and I would not be able to test them as good as I would like. However, I am open to pull requests and issues, so feel free to contribute!
