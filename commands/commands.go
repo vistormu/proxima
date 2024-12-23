@@ -9,7 +9,7 @@ import (
 
 const (
     MAIN_EXT = ".prox"
-    VERSION = "0.5.0"
+    VERSION = "0.5.1"
 )
 
 type CommnadFunc func(args []string) error

@@ -1,7 +1,7 @@
 package tokenizer
 
 import (
-    "proxima/token"
+	"proxima/token"
 )
 
 type Tokenizer struct {
@@ -59,16 +59,10 @@ func (t *Tokenizer) token() token.Token {
     if isText(char) || char == '\\' {
         literal := ""
         for isText(char) || char == '\\' {
-            // escape character
             if char == '\\' {
-                literal += string(peekChar)
                 char, peekChar = t.readChar()
-                char, peekChar = t.readChar()
-
-                continue
             }
 
-            // text
             literal += string(char)
 
             if !isText(peekChar) && peekChar != '\\' {
