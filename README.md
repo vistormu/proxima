@@ -183,7 +183,7 @@ _proxima_ is a project I made for fun and my personal use. I do not plan to add 
 
 [go_version_img]: https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go
 [go_dev_url]: https://go.dev/
-[go_report_img]: https://goreportcard.com/badge/github.com/vistormu/cahier
-[go_report_url]: https://goreportcard.com/report/github.com/vistormu/cahier
-[repo_license_img]: https://img.shields.io/github/license/vistormu/cahier?style=for-the-badge
-[repo_license_url]: https://github.com/vistormu/cahier/blob/main/LICENSE
+[go_report_img]: https://goreportcard.com/badge/github.com/vistormu/proxima
+[go_report_url]: https://goreportcard.com/report/github.com/vistormu/proxima
+[repo_license_img]: https://img.shields.io/github/license/vistormu/proxima?style=for-the-badge
+[repo_license_url]: https://github.com/vistormu/proxima/blob/main/LICENSE
