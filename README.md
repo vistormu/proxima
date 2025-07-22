@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<a href="https://github.com/vistormu/proxima" target="_blank" title="go to the repo"><img width="196px" alt="proxima logo" src="/docs/logo.svg"></a>
+<a href="https://github.com/vistormu/proxima" target="_blank" title="go to the repo"><img width="196px" alt="proxima logo" src="/docs/logo.png"></a>
 
 
 # proxima<br>a markup-language-wrapper markup language!
