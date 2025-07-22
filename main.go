@@ -1,10 +1,7 @@
 package main
 
-import (
-    "os"
-    "proxima/commands"
-)
+import "proxima/cmd"
 
 func main() {
-    commands.Execute(os.Args)
+	cmd.Execute()
 }

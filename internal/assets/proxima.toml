@@ -1,0 +1,16 @@
+[parser]
+line_break_value = "\n"
+double_line_break_value = "\n\n"
+
+[evaluator]
+python = "python3"
+begin_with = ""
+end_with = ""
+# text_replacements = [
+#     { from = "", to = "" },
+# ]
+
+[components]
+path = "components/"
+use_modules = false
+exclude = []

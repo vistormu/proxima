@@ -1,34 +1,47 @@
-# proxima: a markup-language-wrapper markup language!
+<a name="readme-top"></a>
 
-<p align="center">
-    <a href="https://github.com/vistormu/proxima">
-        <img src="/assets/proxima_logo.svg">
-    </a>
-</p>
+<div align="center">
 
-_proxima_ is a markup language that transpiles to any text-based format you want. Creating Python components, you can extend the language with your own logic and reuse them in any part of your document.
+<a href="https://github.com/vistormu/proxima" target="_blank" title="go to the repo"><img width="196px" alt="proxima logo" src="/docs/logo.svg"></a>
+
+
+# proxima<br>a markup-language-wrapper markup language!
+
+_proxima_ is a markup language that transpiles to any text-based format you want
+
+creating python components, you can extend the language with your own logic and reuse them in any part of your document
+
+<br>
+
+[![go version][go_version_img]][go_dev_url]
+[![License][repo_license_img]][repo_license_url]
+
+<br>
+
+</div>
 
 > [!WARNING]
-> Proxima is still under development, so there might be breaking changes between releases until v1.0.0 is out.
+> this project is functional but still in development, so expect some bugs and missing features
 
 ## basic usage
 
-A common _proxima_ project consists of the following structure:
+a common _proxima_ project consists of the following structure:
 
 ```plaintext
-├── components/         # All proxima components are defined here
-│   └── example.py      # Example component
-├── main.prox           # A proxima file
-└── proxima.toml        # Configuration file for proxima
+├── components/         # all proxima components are defined here
+│   └── example.py      # example component
+├── main.prox           # a proxima file
+└── proxima.toml        # configuration file for proxima
 ```
+
 > [!NOTE]
 > running `proxima init` initializes a project with this structure.
 
-The components are defined under the `components` directory in the root of your project. 
+the components are defined under the `components` directory in the root of your project. 
 
-A component is a python file with a function with the same name as the file. The types of the arguments passed to the function are always "str".
+a component is a python file with a function with the same name as the file. The types of the arguments passed to the function are always "str".
 
-In this case, we have a python component called "example.py":
+in this case, we have a python component called "example.py":
 
 ```python
 # components/example.py
@@ -37,15 +50,15 @@ def example(arg: str) -> str:
     return f"the passed argument is: {arg}"
 ```
 
-Then, we can use the component in our Proxima file:
+then, we can use the component in our Proxima file:
 
 ```proxima
 # main.prox
 
-This is a proxima example, and @example{2}.
+this is a proxima example, and @example{2}.
 ```
 
-Finally, by running
+finally, by running
 
 ```bash
 proxima make main.prox -o main.txt
@@ -56,34 +69,34 @@ the output file should look like this:
 ```txt
 # main.txt
 
-This is a proxima example, and the passed argument is: 2.
+this is a proxima example, and the passed argument is: 2.
 ```
 
 ## advanced usage
 
 ### arguments
 
-Multiple arguments can be passed to the component by enclosing them in curly braces.
+multiple arguments can be passed to the component by enclosing them in curly braces.
 
 ```proxima
 # main.prox
 
-This is a proxima example, and @component_with_two_args{one}{two}.
+this is a proxima example, and @component_with_two_args{one}{two}.
 ```
 
-Also, you can pass the arguments by name by using the following syntax:
+also, you can pass the arguments by name by using the following syntax:
 
 ```proxima
 # main.prox
 
-This is a proxima example, and @component_with_named_args{<first> one}{<second> two}.
+this is a proxima example, and @component_with_named_args{<first> one}{<second> two}.
 ```
 
 ### moduled components
 
-By deafult, _proxima_ looks recursively for components in the `components` directory and loads them by their filename.
+by deafult, _proxima_ looks recursively for components in the `components` directory and loads them by their filename.
 
-If we have the following structure:
+if we have the following structure:
 
 ```
 ├── components/
@@ -96,20 +109,20 @@ the component is called in the following way:
 ```proxima
 # main.prox
 
-This is how the component is called by default: @component{}.
+this is how the component is called by default: @component{}.
 ```
 
-However, if the `use_modules` option is set to `true` in the `proxima.toml` file (further explained in the [configuring proxima](#configuring-proxima) section), the components can be called as:
+however, if the `use_modules` option is set to `true` in the `proxima.toml` file (further explained in the [configuring proxima](#configuring-proxima) section), the components can be called as:
 
 ```proxima
 # main.prox
 
-This is how the component is called with modules: @module.component{}.
+this is how the component is called with modules: @module.component{}.
 ```
 
 ### default components
 
-If the `use_modules` option is set to `true`, each module can have a default component that is called when the module is called without specifying the component. The default component must be called as the module itself.
+if the `use_modules` option is set to `true`, each module can have a default component that is called when the module is called without specifying the component. The default component must be called as the module itself.
 
 ```
 ├── components/
@@ -120,35 +133,29 @@ If the `use_modules` option is set to `true`, each module can have a default com
 ```proxima
 # main.prox
 
-This is how the default component is called: @module{}.
+this is how the default component is called: @module{}.
 ```
 
 ## configuring proxima
-_proxima_ can be configured by using the `proxima.toml` file. Here is the default configuration:
+_proxima_ can be configured by using the `proxima.toml` file
 
-```toml
-[parser]
-line_break_value = "\n"          # The value that will be used as a line break
-double_line_break_value = "\n\n" # The value that will be used as a double line break
-
-[evaluator]
-python = "python3"               # The python command to evaluate the components
-begin_with = ""                  # The string that will be added at the beginning of the evaluated file
-end_with = ""                    # The string that will be added at the end of the evaluated file
-# text_replacement = [           # Global text replacements
-#    {from = "_", to = "\\_"},
-# ]
-
-[components]
-path = "./components/"           # The directory where the components are stored
-use_modules = false              # If true, the components will be called as @module.component
-exclude = []                     # Components to exclude from being loaded
-```
+check the default configuration [here](/internal/assets/proxima.toml)
 
 ## installation
-Download the _proxima_ binary for your machine from the [Releases Page](https://github.com/vistormu/proxima/releases).
 
-Move it to the system's binaries
+### homebrew
+
+you can install _proxima_ using homebrew by running the following command:
+
+```bash
+brew install vistormu/proxima/proxima
+```
+
+### from releases
+
+download the _proxima_ binary for your machine from the [releases page](https://github.com/vistormu/proxima/releases).
+
+move it to the system's binaries
 
 ```bash
 mv proxima-<ARCH> /usr/local/bin/proxima
@@ -172,3 +179,11 @@ The main goal of _proxima_ is to be a simple, high-configurable, and extensible.
 
 
 _proxima_ is a project I made for fun and my personal use. I do not plan to add support for other languages, as I mostly use Python and I would not be able to test them as good as I would like. However, I am open to pull requests and issues, so feel free to contribute!
+
+
+[go_version_img]: https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go
+[go_dev_url]: https://go.dev/
+[go_report_img]: https://goreportcard.com/badge/github.com/vistormu/cahier
+[go_report_url]: https://goreportcard.com/report/github.com/vistormu/cahier
+[repo_license_img]: https://img.shields.io/github/license/vistormu/cahier?style=for-the-badge
+[repo_license_url]: https://github.com/vistormu/cahier/blob/main/LICENSE

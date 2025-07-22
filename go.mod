@@ -1,10 +1,14 @@
 module proxima
 
-go 1.23
+go 1.24.1
 
 require (
 	github.com/BurntSushi/toml v1.4.0
-	github.com/lithammer/fuzzysearch v1.1.8
+	github.com/spf13/cobra v1.9.1
+	github.com/vistormu/go-dsa v0.0.9
 )
 
-require golang.org/x/text v0.9.0 // indirect
+require (
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
+)
