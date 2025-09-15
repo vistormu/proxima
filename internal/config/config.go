@@ -3,6 +3,8 @@ package config
 import (
 	"io/fs"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"proxima/internal/assets"
 
@@ -59,6 +61,15 @@ func LoadConfig(path string) (*Config, error) {
 	_, err = toml.NewDecoder(f).Decode(cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	if strings.HasPrefix(cfg.Components.Path, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.Components.Path = filepath.Join(homeDir, cfg.Components.Path[1:])
 	}
 
 	return cfg, nil

@@ -1,6 +1,6 @@
 project_name := proxima
 dist_dir := dist
-version := 0.5.2
+version := 0.5.3
 
 
 .PHONY: build upload install clean
@@ -34,7 +34,7 @@ upload: build
 	gh release create v$(version) $(dist_dir)/* --title "release v$(version)" --notes "release v$(version)"
 
 install: build
-	sudo cp $(dist_dir)/$(project_name)_darwin_arm64 /usr/local/bin/$(project_name)
+	sudo cp $(dist_dir)/$(project_name)_linux_amd64 /usr/local/bin/$(project_name)
 	sudo chmod +x /usr/local/bin/$(project_name)
 
 clean:
