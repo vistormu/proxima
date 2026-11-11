@@ -257,10 +257,11 @@ func TestNestedTags(t *testing.T) {
     }`
 	expressions := getExpressions(t, input)
 
-	checkExpressionLength(t, expressions, 2)
+	checkExpressionLength(t, expressions, 1)
 	tag := checkExpressionIsTag(t, expressions[0], "tag", 1)
 
-	checkExpressionLength(t, tag.Args[0].Values, 1)
+	// @nested plus the newline+indent before the closing brace, kept as text
+	checkExpressionLength(t, tag.Args[0].Values, 2)
 	tagArg := checkExpressionIsTag(t, tag.Args[0].Values[0], "nested", 1)
 
 	checkArgument(t, tagArg.Args[0], "", []string{})
