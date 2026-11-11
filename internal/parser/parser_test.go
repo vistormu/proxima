@@ -100,7 +100,11 @@ func getExpressions(t *testing.T, input string) []ast.Expression {
 	tokenizer := tokenizer.New([]rune(input))
 	tokens := tokenizer.Tokenize()
 
-	parser := New(tokens, "test", config.GetDefaultConfig())
+	cfg, err := config.LoadConfig("") // no file -> the embedded default proxima.toml
+	if err != nil {
+		t.Fatalf("loading default config: %v", err)
+	}
+	parser := New(tokens, "test", cfg)
 	expressions := parser.Parse()
 
 	checkParserErrors(t, parser)
