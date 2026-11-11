@@ -7,9 +7,11 @@ import (
 	"github.com/vistormu/go-dsa/ansi"
 )
 
+// VERSION is set at release time by GoReleaser (-ldflags -X proxima/cmd.VERSION=...).
+var VERSION = "dev"
+
 const (
 	MAIN_EXT = ".prox"
-	VERSION  = "0.5.2"
 	NAME     = ansi.Italic + ansi.Magenta + "proxima" + ansi.Reset
 )
 
