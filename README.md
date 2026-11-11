@@ -148,7 +148,7 @@ check the default configuration [here](/internal/assets/proxima.toml)
 you can install _proxima_ using homebrew by running the following command:
 
 ```bash
-brew install vistormu/proxima/proxima
+brew install --cask vistormu/tap/proxima
 ```
 
 ### from releases
